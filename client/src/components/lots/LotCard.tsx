@@ -54,7 +54,7 @@ export default function LotCard({ lot, onBid, onInstantCash, userRole }: LotCard
   };
 
   return (
-    <Card className="w-80 hover:shadow-md transition-shadow">
+    <Card className="w-full hover:shadow-md transition-shadow">
       <CardContent className="p-4">
         {/* Row 1: Grade + Lot ID + Timer + Watchlist */}
         <div className="flex items-center justify-between mb-3">

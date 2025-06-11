@@ -136,7 +136,7 @@ export default function LotsAndInvoices() {
             {/* Lots Grid */}
             <div className="lg:col-span-3">
               {lotsLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {Array.from({ length: 6 }).map((_, i) => (
                     <div key={i} className="w-full h-96 bg-slate-200 animate-pulse rounded-xl"></div>
                   ))}
@@ -151,7 +151,7 @@ export default function LotsAndInvoices() {
                   </CardContent>
                 </Card>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {filteredLots.map((lot: Lot) => (
                     <LotCard
                       key={lot.id}
