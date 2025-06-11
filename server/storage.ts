@@ -390,6 +390,24 @@ export class DatabaseStorage implements IStorage {
 
     return true;
   }
+
+  async getAutoListingRulesForUser(userId: number): Promise<AutoListingRule[]> {
+    return await db.select().from(autoListingRules).where(eq(autoListingRules.userId, userId));
+  }
+
+  async createAutoListingRule(insertRule: InsertAutoListingRule): Promise<AutoListingRule> {
+    const [rule] = await db
+      .insert(autoListingRules)
+      .values(insertRule)
+      .returning();
+    return rule;
+  }
+
+  async updateAutoListingRule(ruleId: string, updates: Partial<AutoListingRule>): Promise<void> {
+    await db.update(autoListingRules)
+      .set(updates)
+      .where(eq(autoListingRules.id, ruleId));
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -1035,6 +1053,35 @@ export class MemStorage implements IStorage {
 
   async verifyOtpSession(sessionId: string, otpCode: string): Promise<boolean> {
     return false;
+  }
+
+  async getAutoListingRulesForUser(userId: number): Promise<AutoListingRule[]> {
+    return Array.from(this.autoListingRules.values()).filter(rule => rule.userId === userId);
+  }
+
+  async createAutoListingRule(insertRule: InsertAutoListingRule): Promise<AutoListingRule> {
+    const rule: AutoListingRule = {
+      id: insertRule.id,
+      userId: insertRule.userId,
+      factoryId: insertRule.factoryId,
+      grade: insertRule.grade,
+      reservePrice: insertRule.reservePrice,
+      minQuantity: insertRule.minQuantity,
+      listingSchedule: insertRule.listingSchedule,
+      qualityThreshold: insertRule.qualityThreshold,
+      enabled: insertRule.enabled ?? true,
+      autoApprove: insertRule.autoApprove ?? false,
+      createdAt: new Date()
+    };
+    this.autoListingRules.set(rule.id, rule);
+    return rule;
+  }
+
+  async updateAutoListingRule(ruleId: string, updates: Partial<AutoListingRule>): Promise<void> {
+    const rule = this.autoListingRules.get(ruleId);
+    if (rule) {
+      this.autoListingRules.set(ruleId, { ...rule, ...updates });
+    }
   }
 }
 
