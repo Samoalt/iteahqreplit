@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +17,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 
 interface SystemUser {
   id: number;
@@ -28,15 +26,17 @@ interface SystemUser {
   email: string;
   role: string;
   workspace: string;
-  isActive: boolean;
-  lastLogin?: string;
+  status: string;
+  lastLogin: string;
   createdAt: string;
+  permissions: string[];
 }
 
 interface SystemMetrics {
   totalUsers: number;
   activeUsers: number;
-  totalLots: number;
+  pendingInvites: number;
+  totalTransactions: number;
   activeBids: number;
   totalRevenue: string;
   systemUptime: string;
@@ -59,12 +59,13 @@ interface AuditLog {
 export default function Admin() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  
+  // All hooks must be called before any conditional returns
   const [selectedUser, setSelectedUser] = useState<SystemUser | null>(null);
   const [userModalOpen, setUserModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Restrict access to admin users only - moved after all hooks
+  // Restrict access to admin users only
   if (!user || user.role !== "ops_admin") {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -88,379 +89,353 @@ export default function Admin() {
       username: "sarah.chen",
       firstName: "Sarah",
       lastName: "Chen",
-      email: "sarah.chen@buyer.com",
-      role: "buyer",
-      workspace: "Buyer",
-      isActive: true,
-      lastLogin: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      createdAt: "2024-01-15T00:00:00Z"
+      email: "sarah.chen@iteaflow.com",
+      role: "producer",
+      workspace: "Kiambu Factory",
+      status: "active",
+      lastLogin: "2024-01-15 14:30",
+      createdAt: "2023-08-15",
+      permissions: ["view_lots", "create_lots", "manage_inventory"]
     },
     {
       id: 2,
-      username: "john.producer",
-      firstName: "John",
-      lastName: "Kamau",
-      email: "john.kamau@producer.com",
-      role: "producer",
-      workspace: "Producer",
-      isActive: true,
-      lastLogin: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-      createdAt: "2024-01-10T00:00:00Z"
+      username: "james.mwangi",
+      firstName: "James",
+      lastName: "Mwangi",
+      email: "james.mwangi@iteaflow.com",
+      role: "buyer",
+      workspace: "Unilever Kenya",
+      status: "active",
+      lastLogin: "2024-01-15 16:45",
+      createdAt: "2023-09-10",
+      permissions: ["view_auctions", "place_bids", "manage_payments"]
     },
     {
       id: 3,
-      username: "board.member",
+      username: "mary.wanjiku",
       firstName: "Mary",
       lastName: "Wanjiku",
       email: "mary.wanjiku@ktda.com",
       role: "ktda_ro",
       workspace: "KTDA Board",
-      isActive: true,
-      lastLogin: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      createdAt: "2024-01-05T00:00:00Z"
+      status: "active",
+      lastLogin: "2024-01-15 09:15",
+      createdAt: "2023-06-20",
+      permissions: ["view_reports", "monitor_compliance", "access_analytics"]
     },
     {
       id: 4,
-      username: "inactive.user",
-      firstName: "Inactive",
-      lastName: "User",
-      email: "inactive@example.com",
-      role: "buyer",
-      workspace: "Buyer",
-      isActive: false,
-      createdAt: "2023-12-01T00:00:00Z"
+      username: "admin.user",
+      firstName: "System",
+      lastName: "Administrator",
+      email: "admin@iteaflow.com",
+      role: "ops_admin",
+      workspace: "iTea Flow Operations",
+      status: "active",
+      lastLogin: "2024-01-15 17:00",
+      createdAt: "2023-05-01",
+      permissions: ["full_access"]
+    },
+    {
+      id: 5,
+      username: "peter.kamau",
+      firstName: "Peter",
+      lastName: "Kamau",
+      email: "peter.kamau@iteaflow.com",
+      role: "producer",
+      workspace: "Nyeri Factory",
+      status: "pending",
+      lastLogin: "Never",
+      createdAt: "2024-01-10",
+      permissions: ["view_lots", "create_lots"]
     }
   ];
 
-  const mockMetrics: SystemMetrics = {
-    totalUsers: 247,
-    activeUsers: 189,
-    totalLots: 1847,
-    activeBids: 342,
-    totalRevenue: "$2,847,356",
-    systemUptime: "99.8%",
-    avgResponseTime: 245,
-    errorRate: 0.12
+  const systemMetrics: SystemMetrics = {
+    totalUsers: 1247,
+    activeUsers: 892,
+    pendingInvites: 23,
+    totalTransactions: 15678,
+    activeBids: 156,
+    totalRevenue: "KES 245,780,000",
+    systemUptime: "99.94%",
+    avgResponseTime: 142,
+    errorRate: 0.02
   };
 
-  const mockAuditLogs: AuditLog[] = [
+  const auditLogs: AuditLog[] = [
     {
-      id: "LOG-001",
-      userId: 1,
-      username: "sarah.chen",
-      action: "LOGIN",
-      resource: "authentication",
-      timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-      ipAddress: "192.168.1.100",
-      userAgent: "Mozilla/5.0...",
-      details: { success: true }
-    },
-    {
-      id: "LOG-002",
+      id: "audit_001",
       userId: 2,
-      username: "john.producer",
-      action: "CREATE_LOT",
-      resource: "lots",
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      ipAddress: "192.168.1.101",
-      userAgent: "Mozilla/5.0...",
-      details: { lotId: "LOT-3456", grade: "PEKOE" }
+      username: "james.mwangi",
+      action: "PLACE_BID",
+      resource: "LOT-3456",
+      timestamp: "2024-01-15 16:45:23",
+      ipAddress: "192.168.1.100",
+      userAgent: "Mozilla/5.0 Chrome/120.0",
+      details: { bidAmount: "KES 4,200,000", previousBid: "KES 4,100,000" }
     },
     {
-      id: "LOG-003",
+      id: "audit_002",
       userId: 1,
       username: "sarah.chen",
-      action: "PLACE_BID",
-      resource: "bids",
-      timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-      ipAddress: "192.168.1.100",
-      userAgent: "Mozilla/5.0...",
-      details: { lotId: "LOT-3456", amount: 4.85 }
+      action: "CREATE_LOT",
+      resource: "LOT-3457",
+      timestamp: "2024-01-15 14:30:15",
+      ipAddress: "10.0.1.50",
+      userAgent: "Mozilla/5.0 Safari/17.0",
+      details: { lotSize: "500kg", grade: "PEKOE", reservePrice: "KES 3,500,000" }
+    },
+    {
+      id: "audit_003",
+      userId: 4,
+      username: "admin.user",
+      action: "USER_LOGIN",
+      resource: "SYSTEM",
+      timestamp: "2024-01-15 17:00:00",
+      ipAddress: "172.16.0.10",
+      userAgent: "Mozilla/5.0 Chrome/120.0",
+      details: { loginMethod: "SSO", sessionId: "sess_abc123" }
+    },
+    {
+      id: "audit_004",
+      userId: 3,
+      username: "mary.wanjiku",
+      action: "VIEW_REPORT",
+      resource: "ESG_COMPLIANCE",
+      timestamp: "2024-01-15 09:15:45",
+      ipAddress: "203.0.113.25",
+      userAgent: "Mozilla/5.0 Firefox/121.0",
+      details: { reportType: "Monthly ESG Summary", factoriesReviewed: 15 }
     }
   ];
 
-  const [users] = useState<SystemUser[]>(mockUsers);
-  const [metrics] = useState<SystemMetrics>(mockMetrics);
-  const [auditLogs] = useState<AuditLog[]>(mockAuditLogs);
+  const filteredUsers = mockUsers.filter(user =>
+    user.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  const handleToggleUserStatus = (userId: number) => {
+  const handleCreateUser = () => {
     toast({
-      title: "User Status Updated",
-      description: "User account status has been updated successfully"
+      title: "User Creation",
+      description: "User creation functionality would be implemented here.",
     });
+  };
+
+  const handleEditUser = (user: SystemUser) => {
+    setSelectedUser(user);
+    setUserModalOpen(true);
   };
 
   const handleDeleteUser = (userId: number) => {
     toast({
-      title: "User Deleted",
-      description: "User account has been permanently deleted",
-      variant: "destructive"
+      title: "User Deletion",
+      description: `User ${userId} deletion would be processed here.`,
+      variant: "destructive",
     });
   };
 
-  const handleCreateUser = (userData: any) => {
+  const handleResetPassword = (userId: number) => {
     toast({
-      title: "User Created",
-      description: "New user account has been created successfully"
-    });
-    setUserModalOpen(false);
-  };
-
-  const handleSystemAction = (action: string) => {
-    toast({
-      title: "System Action",
-      description: `${action} completed successfully`
+      title: "Password Reset",
+      description: `Password reset email sent to user ${userId}.`,
     });
   };
 
-  const getRoleBadgeColor = (role: string) => {
+  const getRoleColor = (role: string) => {
     switch (role) {
-      case "ops_admin":
-        return "bg-status-red text-white";
-      case "ktda_ro":
-        return "bg-primary text-white";
-      case "buyer":
-        return "bg-accent text-white";
-      case "producer":
-        return "bg-status-green text-white";
-      default:
-        return "bg-status-grey text-white";
+      case "ops_admin": return "bg-red-100 text-red-800";
+      case "ktda_ro": return "bg-purple-100 text-purple-800";
+      case "buyer": return "bg-blue-100 text-blue-800";
+      case "producer": return "bg-green-100 text-green-800";
+      default: return "bg-gray-100 text-gray-800";
     }
   };
 
-  const formatTimeAgo = (dateString: string) => {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diffMs = now.getTime() - date.getTime();
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffHours < 24) return `${diffHours}h ago`;
-    return `${diffDays}d ago`;
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "active": return "bg-green-100 text-green-800";
+      case "pending": return "bg-yellow-100 text-yellow-800";
+      case "suspended": return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
   };
-
-  const filteredUsers = users.filter(user => 
-    user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Admin Dashboard</h1>
-          <p className="text-slate-600">System administration and user management</p>
+          <h1 className="text-3xl font-bold text-slate-900">System Administration</h1>
+          <p className="text-slate-600">Manage users, monitor system health, and review audit logs</p>
         </div>
-        <Badge className="bg-status-red text-white">
-          <Shield className="w-4 h-4 mr-1" />
-          Admin Access
-        </Badge>
+        <div className="flex space-x-2">
+          <Button variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Export Data
+          </Button>
+          <Button variant="outline" size="sm">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
-      {/* System Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* System Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600">Total Users</p>
-                <p className="text-2xl font-bold text-slate-900">{metrics.totalUsers}</p>
-                <p className="text-sm text-status-green">{metrics.activeUsers} active</p>
-              </div>
-              <Users className="w-8 h-8 text-primary" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{systemMetrics.totalUsers.toLocaleString()}</div>
+            <p className="text-xs text-green-600">+12 from last month</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600">System Uptime</p>
-                <p className="text-2xl font-bold text-slate-900">{metrics.systemUptime}</p>
-                <p className="text-sm text-status-green">Excellent</p>
-              </div>
-              <Server className="w-8 h-8 text-status-green" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{systemMetrics.activeUsers.toLocaleString()}</div>
+            <p className="text-xs text-green-600">71.5% online rate</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600">Response Time</p>
-                <p className="text-2xl font-bold text-slate-900">{metrics.avgResponseTime}ms</p>
-                <p className="text-sm text-status-green">Optimal</p>
-              </div>
-              <Activity className="w-8 h-8 text-accent" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">System Uptime</CardTitle>
+            <Server className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{systemMetrics.systemUptime}</div>
+            <p className="text-xs text-green-600">24.8 days continuous</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600">Error Rate</p>
-                <p className="text-2xl font-bold text-slate-900">{metrics.errorRate}%</p>
-                <p className="text-sm text-status-green">Low</p>
-              </div>
-              <BarChart3 className="w-8 h-8 text-status-amber" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Error Rate</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{systemMetrics.errorRate}%</div>
+            <p className="text-xs text-green-600">-0.1% from yesterday</p>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="system">System</TabsTrigger>
+      {/* Main Content Tabs */}
+      <Tabs defaultValue="users" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="users">User Management</TabsTrigger>
+          <TabsTrigger value="system">System Health</TabsTrigger>
           <TabsTrigger value="audit">Audit Logs</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-          <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+          <TabsTrigger value="settings">System Settings</TabsTrigger>
         </TabsList>
 
-        {/* Users Tab */}
-        <TabsContent value="users" className="space-y-6">
+        <TabsContent value="users" className="space-y-4">
+          {/* User Management Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">User Management</h2>
+              <p className="text-sm text-slate-600">Manage user accounts, roles, and permissions</p>
+            </div>
+            <Button onClick={handleCreateUser}>
+              <UserPlus className="h-4 w-4 mr-2" />
+              Add User
+            </Button>
+          </div>
+
+          {/* Search and Filters */}
+          <div className="flex items-center space-x-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+              <Input
+                placeholder="Search users..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select defaultValue="all">
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filter by role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="producer">Producer</SelectItem>
+                <SelectItem value="buyer">Buyer</SelectItem>
+                <SelectItem value="ktda_ro">KTDA Board</SelectItem>
+                <SelectItem value="ops_admin">Operations Admin</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Users Table */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>User Management</CardTitle>
-              <Dialog open={userModalOpen} onOpenChange={setUserModalOpen}>
-                <DialogTrigger asChild>
-                  <Button className="bg-primary hover:bg-primary/90">
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    Add User
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Create New User</DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={(e) => {
-                    e.preventDefault();
-                    handleCreateUser({});
-                  }} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="firstName">First Name</Label>
-                        <Input id="firstName" required />
-                      </div>
-                      <div>
-                        <Label htmlFor="lastName">Last Name</Label>
-                        <Input id="lastName" required />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="email">Email</Label>
-                      <Input id="email" type="email" required />
-                    </div>
-                    <div>
-                      <Label htmlFor="username">Username</Label>
-                      <Input id="username" required />
-                    </div>
-                    <div>
-                      <Label htmlFor="role">Role</Label>
-                      <Select required>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="producer">Producer</SelectItem>
-                          <SelectItem value="buyer">Buyer</SelectItem>
-                          <SelectItem value="ktda_ro">KTDA Board</SelectItem>
-                          <SelectItem value="ops_admin">Admin</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex justify-end space-x-3">
-                      <Button type="button" variant="outline" onClick={() => setUserModalOpen(false)}>
-                        Cancel
-                      </Button>
-                      <Button type="submit">Create User</Button>
-                    </div>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                  <Input
-                    placeholder="Search users..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-              
+            <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">User</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Role</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Workspace</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Last Login</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Actions</th>
+                  <thead className="border-b">
+                    <tr className="text-left">
+                      <th className="p-4 font-medium">User</th>
+                      <th className="p-4 font-medium">Role</th>
+                      <th className="p-4 font-medium">Workspace</th>
+                      <th className="p-4 font-medium">Status</th>
+                      <th className="p-4 font-medium">Last Login</th>
+                      <th className="p-4 font-medium">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200">
+                  <tbody>
                     {filteredUsers.map((user) => (
-                      <tr key={user.id}>
-                        <td className="px-6 py-4">
+                      <tr key={user.id} className="border-b hover:bg-slate-50">
+                        <td className="p-4">
                           <div>
-                            <div className="font-medium text-slate-900">
-                              {user.firstName} {user.lastName}
-                            </div>
-                            <div className="text-sm text-slate-600">{user.email}</div>
-                            <div className="text-xs text-slate-500">@{user.username}</div>
+                            <div className="font-medium">{user.firstName} {user.lastName}</div>
+                            <div className="text-sm text-slate-600">@{user.username}</div>
+                            <div className="text-sm text-slate-500">{user.email}</div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <Badge className={getRoleBadgeColor(user.role)}>
+                        <td className="p-4">
+                          <Badge className={getRoleColor(user.role)}>
                             {user.role.replace('_', ' ').toUpperCase()}
                           </Badge>
                         </td>
-                        <td className="px-6 py-4 text-sm text-slate-900">{user.workspace}</td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-2">
-                            <div className={`w-2 h-2 rounded-full ${
-                              user.isActive ? "bg-status-green" : "bg-status-grey"
-                            }`}></div>
-                            <span className="text-sm">
-                              {user.isActive ? "Active" : "Inactive"}
-                            </span>
-                          </div>
+                        <td className="p-4 text-sm">{user.workspace}</td>
+                        <td className="p-4">
+                          <Badge className={getStatusColor(user.status)}>
+                            {user.status}
+                          </Badge>
                         </td>
-                        <td className="px-6 py-4 text-sm text-slate-500">
-                          {user.lastLogin ? formatTimeAgo(user.lastLogin) : "Never"}
-                        </td>
-                        <td className="px-6 py-4">
+                        <td className="p-4 text-sm">{user.lastLogin}</td>
+                        <td className="p-4">
                           <div className="flex items-center space-x-2">
-                            <Button variant="ghost" size="sm">
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm">
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Switch
-                              checked={user.isActive}
-                              onCheckedChange={() => handleToggleUserStatus(user.id)}
-                            />
                             <Button 
                               variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleDeleteUser(user.id)}
-                              className="text-status-red hover:text-status-red/80"
+                              size="sm"
+                              onClick={() => handleEditUser(user)}
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleResetPassword(user.id)}
+                            >
+                              <RefreshCw className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleDeleteUser(user.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
                         </td>
@@ -473,121 +448,98 @@ export default function Admin() {
           </Card>
         </TabsContent>
 
-        {/* System Tab */}
-        <TabsContent value="system" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TabsContent value="system" className="space-y-4">
+          <div>
+            <h2 className="text-xl font-semibold mb-4">System Health Monitoring</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>System Operations</CardTitle>
+                <CardTitle className="text-sm">Performance Metrics</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <Button 
-                  onClick={() => handleSystemAction("Cache Clear")}
-                  className="w-full justify-start"
-                  variant="outline"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Clear System Cache
-                </Button>
-                <Button 
-                  onClick={() => handleSystemAction("Database Backup")}
-                  className="w-full justify-start"
-                  variant="outline"
-                >
-                  <Database className="w-4 h-4 mr-2" />
-                  Backup Database
-                </Button>
-                <Button 
-                  onClick={() => handleSystemAction("Export Data")}
-                  className="w-full justify-start"
-                  variant="outline"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Export System Data
-                </Button>
-                <Button 
-                  onClick={() => handleSystemAction("Import Data")}
-                  className="w-full justify-start"
-                  variant="outline"
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Import Data
-                </Button>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span>Avg Response Time</span>
+                  <span className="font-medium text-green-600">{systemMetrics.avgResponseTime}ms</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Total Transactions</span>
+                  <span className="font-medium">{systemMetrics.totalTransactions.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Active Bids</span>
+                  <span className="font-medium">{systemMetrics.activeBids}</span>
+                </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>System Health</CardTitle>
+                <CardTitle className="text-sm">Server Status</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Database Status</span>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-status-green" />
-                    <span className="text-sm text-status-green">Healthy</span>
-                  </div>
+              <CardContent className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="text-sm">API Server: Online</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">API Services</span>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-status-green" />
-                    <span className="text-sm text-status-green">Online</span>
-                  </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="text-sm">Database: Healthy</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">WebSocket</span>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-status-green" />
-                    <span className="text-sm text-status-green">Connected</span>
-                  </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="text-sm">Cache: Operational</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Storage</span>
-                  <div className="flex items-center space-x-2">
-                    <AlertTriangle className="w-4 h-4 text-status-amber" />
-                    <span className="text-sm text-status-amber">78% Used</span>
-                  </div>
-                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Revenue Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">{systemMetrics.totalRevenue}</div>
+                <p className="text-xs text-slate-600">Total platform revenue</p>
               </CardContent>
             </Card>
           </div>
         </TabsContent>
 
-        {/* Audit Logs Tab */}
-        <TabsContent value="audit" className="space-y-6">
+        <TabsContent value="audit" className="space-y-4">
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Audit Logs</h2>
+          </div>
+
           <Card>
-            <CardHeader>
-              <CardTitle>Audit Trail</CardTitle>
-            </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Timestamp</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">User</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Action</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Resource</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">IP Address</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Details</th>
+                  <thead className="border-b">
+                    <tr className="text-left">
+                      <th className="p-4 font-medium">Timestamp</th>
+                      <th className="p-4 font-medium">User</th>
+                      <th className="p-4 font-medium">Action</th>
+                      <th className="p-4 font-medium">Resource</th>
+                      <th className="p-4 font-medium">IP Address</th>
+                      <th className="p-4 font-medium">Details</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200">
+                  <tbody>
                     {auditLogs.map((log) => (
-                      <tr key={log.id}>
-                        <td className="px-6 py-4 text-sm text-slate-900">
-                          {new Date(log.timestamp).toLocaleString()}
+                      <tr key={log.id} className="border-b hover:bg-slate-50">
+                        <td className="p-4 text-sm">{log.timestamp}</td>
+                        <td className="p-4 text-sm font-medium">{log.username}</td>
+                        <td className="p-4">
+                          <Badge variant="outline" className="text-xs">
+                            {log.action}
+                          </Badge>
                         </td>
-                        <td className="px-6 py-4 text-sm text-slate-900">{log.username}</td>
-                        <td className="px-6 py-4">
-                          <Badge className="bg-accent text-white">{log.action}</Badge>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-slate-900">{log.resource}</td>
-                        <td className="px-6 py-4 text-sm text-slate-500">{log.ipAddress}</td>
-                        <td className="px-6 py-4">
+                        <td className="p-4 text-sm">{log.resource}</td>
+                        <td className="p-4 text-sm font-mono">{log.ipAddress}</td>
+                        <td className="p-4">
                           <Button variant="ghost" size="sm">
-                            <Eye className="w-4 h-4" />
+                            <Eye className="h-4 w-4" />
                           </Button>
                         </td>
                       </tr>
@@ -599,9 +551,43 @@ export default function Admin() {
           </Card>
         </TabsContent>
 
-        {/* Settings Tab */}
-        <TabsContent value="settings" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TabsContent value="settings" className="space-y-4">
+          <div>
+            <h2 className="text-xl font-semibold mb-4">System Settings</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Security Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm font-medium">Two-Factor Authentication</Label>
+                    <p className="text-xs text-slate-600">Require 2FA for all admin accounts</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm font-medium">Session Timeout</Label>
+                    <p className="text-xs text-slate-600">Auto-logout after inactivity</p>
+                  </div>
+                  <Select defaultValue="30">
+                    <SelectTrigger className="w-24">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="15">15min</SelectItem>
+                      <SelectItem value="30">30min</SelectItem>
+                      <SelectItem value="60">1hr</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Platform Settings</CardTitle>
@@ -609,119 +595,72 @@ export default function Admin() {
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label className="text-sm font-medium">User Registration</Label>
-                    <p className="text-xs text-slate-500">Allow new user self-registration</p>
-                  </div>
-                  <Switch defaultChecked={false} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label className="text-sm font-medium">Email Notifications</Label>
-                    <p className="text-xs text-slate-500">Send system email notifications</p>
-                  </div>
-                  <Switch defaultChecked={true} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
                     <Label className="text-sm font-medium">Maintenance Mode</Label>
-                    <p className="text-xs text-slate-500">Enable system maintenance mode</p>
+                    <p className="text-xs text-slate-600">Enable system maintenance</p>
                   </div>
-                  <Switch defaultChecked={false} />
+                  <Switch />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label className="text-sm font-medium">Audit Logging</Label>
-                    <p className="text-xs text-slate-500">Log all user actions</p>
+                    <Label className="text-sm font-medium">Debug Logging</Label>
+                    <p className="text-xs text-slate-600">Enable detailed system logs</p>
                   </div>
-                  <Switch defaultChecked={true} />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Security Settings</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="session-timeout">Session Timeout (minutes)</Label>
-                  <Input id="session-timeout" type="number" defaultValue="60" />
-                </div>
-                <div>
-                  <Label htmlFor="max-login-attempts">Max Login Attempts</Label>
-                  <Input id="max-login-attempts" type="number" defaultValue="5" />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label className="text-sm font-medium">Two-Factor Authentication</Label>
-                    <p className="text-xs text-slate-500">Require 2FA for admin users</p>
-                  </div>
-                  <Switch defaultChecked={false} />
-                </div>
-                <Button className="w-full">Save Security Settings</Button>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        {/* Monitoring Tab */}
-        <TabsContent value="monitoring" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Real-time Metrics</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Active Sessions</span>
-                  <span className="text-lg font-semibold text-slate-900">147</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">API Requests/min</span>
-                  <span className="text-lg font-semibold text-slate-900">1,247</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Active Auctions</span>
-                  <span className="text-lg font-semibold text-slate-900">8</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">WebSocket Connections</span>
-                  <span className="text-lg font-semibold text-slate-900">289</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>System Alerts</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center space-x-3 p-3 bg-amber-50 rounded-lg">
-                  <AlertTriangle className="w-5 h-5 text-status-amber" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-slate-900">High CPU Usage</p>
-                    <p className="text-xs text-slate-600">Server load at 85%</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
-                  <Bell className="w-5 h-5 text-status-blue" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-slate-900">Scheduled Maintenance</p>
-                    <p className="text-xs text-slate-600">Tonight 2:00-4:00 AM UTC</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-                  <CheckCircle className="w-5 h-5 text-status-green" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-slate-900">Backup Completed</p>
-                    <p className="text-xs text-slate-600">Daily backup successful</p>
-                  </div>
+                  <Switch />
                 </div>
               </CardContent>
             </Card>
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* User Edit Modal */}
+      <Dialog open={userModalOpen} onOpenChange={setUserModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="firstName">First Name</Label>
+                  <Input id="firstName" defaultValue={selectedUser.firstName} />
+                </div>
+                <div>
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <Input id="lastName" defaultValue={selectedUser.lastName} />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" defaultValue={selectedUser.email} />
+              </div>
+              <div>
+                <Label htmlFor="role">Role</Label>
+                <Select defaultValue={selectedUser.role}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="producer">Producer</SelectItem>
+                    <SelectItem value="buyer">Buyer</SelectItem>
+                    <SelectItem value="ktda_ro">KTDA Board</SelectItem>
+                    <SelectItem value="ops_admin">Operations Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setUserModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={() => setUserModalOpen(false)}>
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
