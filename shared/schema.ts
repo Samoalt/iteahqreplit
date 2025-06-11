@@ -239,6 +239,7 @@ export const insertEsgMetricSchema = createInsertSchema(esgMetrics).omit({ id: t
 export const insertFactoryFlagSchema = createInsertSchema(factoryFlags).omit({ id: true, createdAt: true });
 export const insertPaymentMethodSchema = createInsertSchema(paymentMethods).omit({ id: true, createdAt: true });
 export const insertOtpSessionSchema = createInsertSchema(otpSessions).omit({ id: true, createdAt: true });
+export const insertAutoListingRuleSchema = createInsertSchema(autoListingRules).omit({ createdAt: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -273,3 +274,5 @@ export type PaymentMethod = typeof paymentMethods.$inferSelect;
 export type InsertPaymentMethod = z.infer<typeof insertPaymentMethodSchema>;
 export type OtpSession = typeof otpSessions.$inferSelect;
 export type InsertOtpSession = z.infer<typeof insertOtpSessionSchema>;
+export type AutoListingRule = typeof autoListingRules.$inferSelect;
+export type InsertAutoListingRule = z.infer<typeof insertAutoListingRuleSchema>;

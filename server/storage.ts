@@ -1,7 +1,7 @@
 import {
   users, lots, bids, invoices, wallets, instantCashAdvances,
   fxLocks, insurancePolicies, wireTransfers, activities, notifications,
-  lenderPools, esgMetrics, factoryFlags, paymentMethods, otpSessions,
+  lenderPools, esgMetrics, factoryFlags, paymentMethods, otpSessions, autoListingRules,
   type User, type InsertUser, type Lot, type InsertLot,
   type Bid, type InsertBid, type Invoice, type InsertInvoice,
   type Wallet, type InsertWallet, type InstantCashAdvance, type InsertInstantCashAdvance,
@@ -9,7 +9,8 @@ import {
   type WireTransfer, type InsertWireTransfer, type Activity, type InsertActivity,
   type Notification, type InsertNotification, type LenderPool, type InsertLenderPool,
   type EsgMetric, type InsertEsgMetric, type FactoryFlag, type InsertFactoryFlag,
-  type PaymentMethod, type InsertPaymentMethod, type OtpSession, type InsertOtpSession
+  type PaymentMethod, type InsertPaymentMethod, type OtpSession, type InsertOtpSession,
+  type AutoListingRule, type InsertAutoListingRule
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
@@ -408,6 +409,7 @@ export class MemStorage implements IStorage {
   private factoryFlags: Map<number, FactoryFlag> = new Map();
   private paymentMethods: Map<number, PaymentMethod> = new Map();
   private otpSessions: Map<string, OtpSession> = new Map();
+  private autoListingRules: Map<string, AutoListingRule> = new Map();
   
   private currentUserId = 1;
   private currentBidId = 1;
