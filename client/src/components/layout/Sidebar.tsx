@@ -2,19 +2,75 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { Home, Package, Wallet, Zap, DollarSign, Shield, FileText, Building, Bell, Settings, ListChecks } from "lucide-react";
 
-const navigationItems = [
-  { id: "dashboard", label: "Dashboard", icon: Home, path: "/dashboard", roles: ["producer", "buyer", "ktda_ro", "ops_admin"] },
-  { id: "lots", label: "Lots & Invoices", icon: Package, path: "/lots", roles: ["producer", "buyer", "ops_admin"] },
-  { id: "wallets", label: "Wallets & Settlement", icon: Wallet, path: "/wallets", roles: ["producer", "buyer", "ops_admin"] },
-  { id: "instant-cash", label: "Instant Cash", icon: Zap, path: "/instant-cash", roles: ["buyer", "ops_admin"] },
-  { id: "fx-credit", label: "FX & Credit", icon: DollarSign, path: "/fx-credit", roles: ["producer", "buyer", "ops_admin"] },
-  { id: "insurance", label: "Insurance Hub", icon: Shield, path: "/insurance", roles: ["producer", "buyer", "ops_admin"] },
-  { id: "auto-listing", label: "Auto-Listing", icon: ListChecks, path: "/auto-listing", roles: ["producer", "ops_admin"] },
-  { id: "reports", label: "Statements & Reports", icon: FileText, path: "/reports", roles: ["producer", "buyer", "ktda_ro", "ops_admin"] },
-  { id: "board", label: "Board View", icon: Building, path: "/board", roles: ["ktda_ro", "ops_admin"] },
-  { id: "alerts", label: "Alerts", icon: Bell, path: "/alerts", roles: ["producer", "buyer", "ktda_ro", "ops_admin"] },
-  { id: "admin", label: "Admin", icon: Settings, path: "/admin", roles: ["ops_admin"] },
-];
+const getNavigationItems = (role: string) => {
+  const allItems = [
+    { id: "dashboard", label: "Dashboard", icon: Home, path: "/dashboard", roles: ["producer", "buyer", "ktda_ro", "ops_admin"] },
+    { id: "lots", label: "Lots & Invoices", icon: Package, path: "/lots", roles: ["producer", "buyer", "ops_admin"] },
+    { id: "wallets", label: "Wallets & Settlement", icon: Wallet, path: "/wallets", roles: ["producer", "buyer", "ops_admin"] },
+    { id: "instant-cash", label: "Instant Cash", icon: Zap, path: "/instant-cash", roles: ["buyer", "ops_admin"] },
+    { id: "fx-credit", label: "FX & Credit", icon: DollarSign, path: "/fx-credit", roles: ["producer", "buyer", "ops_admin"] },
+    { id: "insurance", label: "Insurance Hub", icon: Shield, path: "/insurance", roles: ["producer", "buyer", "ops_admin"] },
+    { id: "auto-listing", label: "Auto-Listing", icon: ListChecks, path: "/auto-listing", roles: ["producer", "ops_admin"] },
+    { id: "reports", label: "Statements & Reports", icon: FileText, path: "/reports", roles: ["producer", "buyer", "ktda_ro", "ops_admin"] },
+    { id: "board", label: "Board View", icon: Building, path: "/board", roles: ["ktda_ro", "ops_admin"] },
+    { id: "alerts", label: "Alerts", icon: Bell, path: "/alerts", roles: ["producer", "buyer", "ktda_ro", "ops_admin"] },
+    { id: "admin", label: "Admin", icon: Settings, path: "/admin", roles: ["ops_admin"] },
+  ];
+
+  // Role-specific filtering with distinct menu items
+  if (role === "producer") {
+    return [
+      { id: "dashboard", label: "Production Dashboard", icon: Home, path: "/dashboard", roles: ["producer"] },
+      { id: "auto-listing", label: "Auto-Listing Rules", icon: ListChecks, path: "/auto-listing", roles: ["producer"] },
+      { id: "lots", label: "My Tea Lots", icon: Package, path: "/lots", roles: ["producer"] },
+      { id: "fx-credit", label: "FX & Advance Cash", icon: DollarSign, path: "/fx-credit", roles: ["producer"] },
+      { id: "insurance", label: "Factory Insurance", icon: Shield, path: "/insurance", roles: ["producer"] },
+      { id: "wallets", label: "Payment Settlement", icon: Wallet, path: "/wallets", roles: ["producer"] },
+      { id: "reports", label: "Production Reports", icon: FileText, path: "/reports", roles: ["producer"] },
+      { id: "alerts", label: "Factory Alerts", icon: Bell, path: "/alerts", roles: ["producer"] },
+    ];
+  }
+
+  if (role === "buyer") {
+    return [
+      { id: "dashboard", label: "Buyer Dashboard", icon: Home, path: "/dashboard", roles: ["buyer"] },
+      { id: "lots", label: "Live Auctions", icon: Package, path: "/lots", roles: ["buyer"] },
+      { id: "instant-cash", label: "Instant Cash", icon: Zap, path: "/instant-cash", roles: ["buyer"] },
+      { id: "fx-credit", label: "FX & Credit Lines", icon: DollarSign, path: "/fx-credit", roles: ["buyer"] },
+      { id: "insurance", label: "Cargo Insurance", icon: Shield, path: "/insurance", roles: ["buyer"] },
+      { id: "wallets", label: "Payment Wallets", icon: Wallet, path: "/wallets", roles: ["buyer"] },
+      { id: "reports", label: "Purchase Reports", icon: FileText, path: "/reports", roles: ["buyer"] },
+      { id: "alerts", label: "Bid Alerts", icon: Bell, path: "/alerts", roles: ["buyer"] },
+    ];
+  }
+
+  if (role === "ktda_ro") {
+    return [
+      { id: "dashboard", label: "Board Dashboard", icon: Home, path: "/dashboard", roles: ["ktda_ro"] },
+      { id: "board", label: "Factory Network", icon: Building, path: "/board", roles: ["ktda_ro"] },
+      { id: "reports", label: "ESG & Financial Reports", icon: FileText, path: "/reports", roles: ["ktda_ro"] },
+      { id: "alerts", label: "Network Alerts", icon: Bell, path: "/alerts", roles: ["ktda_ro"] },
+    ];
+  }
+
+  if (role === "ops_admin") {
+    return [
+      { id: "dashboard", label: "Operations Dashboard", icon: Home, path: "/dashboard", roles: ["ops_admin"] },
+      { id: "admin", label: "System Admin", icon: Settings, path: "/admin", roles: ["ops_admin"] },
+      { id: "lots", label: "Platform Lots", icon: Package, path: "/lots", roles: ["ops_admin"] },
+      { id: "wallets", label: "All Settlements", icon: Wallet, path: "/wallets", roles: ["ops_admin"] },
+      { id: "instant-cash", label: "Cash Management", icon: Zap, path: "/instant-cash", roles: ["ops_admin"] },
+      { id: "fx-credit", label: "FX Operations", icon: DollarSign, path: "/fx-credit", roles: ["ops_admin"] },
+      { id: "insurance", label: "Insurance Admin", icon: Shield, path: "/insurance", roles: ["ops_admin"] },
+      { id: "auto-listing", label: "Auto-List Config", icon: ListChecks, path: "/auto-listing", roles: ["ops_admin"] },
+      { id: "board", label: "Board Tools", icon: Building, path: "/board", roles: ["ops_admin"] },
+      { id: "reports", label: "System Reports", icon: FileText, path: "/reports", roles: ["ops_admin"] },
+      { id: "alerts", label: "System Alerts", icon: Bell, path: "/alerts", roles: ["ops_admin"] },
+    ];
+  }
+
+  return allItems.filter(item => item.roles.includes(role));
+};
 
 export default function Sidebar() {
   const { user } = useAuth();
