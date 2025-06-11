@@ -693,6 +693,38 @@ export class MemStorage implements IStorage {
       this.notifications.set(notification.id, notification);
     }
     this.currentNotificationId = 5;
+
+    // Add sample auto-listing rules for producer (user ID 2)
+    const sampleRule1: AutoListingRule = {
+      id: "auto-rule-001",
+      userId: 2,
+      factoryId: "KANGAITA-001",
+      enabled: true,
+      grade: "PEKOE",
+      minQuantity: 100,
+      reservePrice: "450.00",
+      listingSchedule: "daily",
+      qualityThreshold: 85,
+      autoApprove: true,
+      createdAt: new Date()
+    };
+
+    const sampleRule2: AutoListingRule = {
+      id: "auto-rule-002", 
+      userId: 2,
+      factoryId: "KANGAITA-002",
+      enabled: false,
+      grade: "BOPF",
+      minQuantity: 200,
+      reservePrice: "380.00",
+      listingSchedule: "weekly",
+      qualityThreshold: 80,
+      autoApprove: false,
+      createdAt: new Date()
+    };
+
+    this.autoListingRules.set("auto-rule-001", sampleRule1);
+    this.autoListingRules.set("auto-rule-002", sampleRule2);
   }
 
   // User methods
