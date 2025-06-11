@@ -29,6 +29,7 @@ export default function Login() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -74,6 +75,11 @@ export default function Login() {
     { email: "board@ktda.com", password: "demo123", role: "KTDA Board", name: "David Kimani" },
     { email: "admin@iteaflow.com", password: "demo123", role: "Operations Admin", name: "Admin User" }
   ];
+
+  const fillDemoAccount = (email: string, password: string) => {
+    setValue("email", email);
+    setValue("password", password);
+  };
 
   return (
     <div className="min-h-screen flex">
@@ -244,7 +250,11 @@ export default function Login() {
               <h3 className="font-semibold text-emerald-800 mb-3 text-center">Demo Accounts</h3>
               <div className="grid grid-cols-1 gap-2 text-sm">
                 {demoAccounts.map((account, index) => (
-                  <div key={index} className="flex justify-between items-center p-3 bg-white/80 rounded-lg border border-emerald-100">
+                  <button
+                    key={index}
+                    onClick={() => fillDemoAccount(account.email, account.password)}
+                    className="flex justify-between items-center p-3 bg-white/80 rounded-lg border border-emerald-100 hover:bg-emerald-50/80 hover:border-emerald-200 transition-all duration-200 cursor-pointer text-left w-full"
+                  >
                     <div>
                       <div className="font-medium text-slate-900">{account.name}</div>
                       <div className="text-slate-600 text-xs">{account.role}</div>
@@ -253,9 +263,12 @@ export default function Login() {
                       <div className="text-slate-700 font-mono text-xs">{account.email}</div>
                       <div className="text-slate-500 font-mono text-xs">{account.password}</div>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
+              <p className="text-xs text-emerald-700 mt-3 text-center">
+                Click any account above to prefill the login form
+              </p>
             </CardContent>
           </Card>
           
