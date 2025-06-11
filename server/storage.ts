@@ -7,6 +7,8 @@ import {
   type FxLock, type InsertFxLock, type InsurancePolicy, type InsertInsurancePolicy,
   type WireTransfer, type InsertWireTransfer, type Activity, type InsertActivity
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, and } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -55,6 +57,183 @@ export interface IStorage {
   // Activities
   createActivity(activity: InsertActivity): Promise<Activity>;
   getActivitiesForUser(userId: number): Promise<Activity[]>;
+}
+
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async getLots(): Promise<Lot[]> {
+    return await db.select().from(lots);
+  }
+
+  async getLot(lotId: string): Promise<Lot | undefined> {
+    const [lot] = await db.select().from(lots).where(eq(lots.lotId, lotId));
+    return lot || undefined;
+  }
+
+  async createLot(insertLot: InsertLot): Promise<Lot> {
+    const [lot] = await db
+      .insert(lots)
+      .values(insertLot)
+      .returning();
+    return lot;
+  }
+
+  async updateLotStatus(lotId: string, status: string): Promise<void> {
+    await db
+      .update(lots)
+      .set({ status })
+      .where(eq(lots.lotId, lotId));
+  }
+
+  async getBidsForLot(lotId: string): Promise<Bid[]> {
+    return await db.select().from(bids).where(eq(bids.lotId, lotId));
+  }
+
+  async createBid(insertBid: InsertBid): Promise<Bid> {
+    const [bid] = await db
+      .insert(bids)
+      .values(insertBid)
+      .returning();
+    return bid;
+  }
+
+  async getWinningBid(lotId: string): Promise<Bid | undefined> {
+    const [bid] = await db
+      .select()
+      .from(bids)
+      .where(eq(bids.lotId, lotId))
+      .orderBy(bids.bidAmount)
+      .limit(1);
+    return bid || undefined;
+  }
+
+  async getInvoicesForUser(userId: number): Promise<Invoice[]> {
+    return await db.select().from(invoices).where(eq(invoices.buyerId, userId));
+  }
+
+  async createInvoice(insertInvoice: InsertInvoice): Promise<Invoice> {
+    const [invoice] = await db
+      .insert(invoices)
+      .values(insertInvoice)
+      .returning();
+    return invoice;
+  }
+
+  async updateInvoiceStatus(invoiceNumber: string, status: string, paymentMethod?: string): Promise<void> {
+    await db
+      .update(invoices)
+      .set({ 
+        status, 
+        paymentMethod: paymentMethod || null,
+        paidAt: status === "paid" ? new Date() : null
+      })
+      .where(eq(invoices.invoiceNumber, invoiceNumber));
+  }
+
+  async getWalletsForUser(userId: number): Promise<Wallet[]> {
+    return await db.select().from(wallets).where(eq(wallets.userId, userId));
+  }
+
+  async getWallet(userId: number, currency: string): Promise<Wallet | undefined> {
+    const [wallet] = await db
+      .select()
+      .from(wallets)
+      .where(and(eq(wallets.userId, userId), eq(wallets.currency, currency)));
+    return wallet || undefined;
+  }
+
+  async updateWalletBalance(userId: number, currency: string, amount: string): Promise<void> {
+    await db
+      .update(wallets)
+      .set({ balance: amount, updatedAt: new Date() })
+      .where(and(eq(wallets.userId, userId), eq(wallets.currency, currency)));
+  }
+
+  async createInstantCashAdvance(insertAdvance: InsertInstantCashAdvance): Promise<InstantCashAdvance> {
+    const [advance] = await db
+      .insert(instantCashAdvances)
+      .values(insertAdvance)
+      .returning();
+    return advance;
+  }
+
+  async getInstantCashAdvancesForUser(userId: number): Promise<InstantCashAdvance[]> {
+    return await db.select().from(instantCashAdvances).where(eq(instantCashAdvances.producerId, userId));
+  }
+
+  async createFxLock(insertFxLock: InsertFxLock): Promise<FxLock> {
+    const [fxLock] = await db
+      .insert(fxLocks)
+      .values(insertFxLock)
+      .returning();
+    return fxLock;
+  }
+
+  async getFxLocksForUser(userId: number): Promise<FxLock[]> {
+    return await db.select().from(fxLocks).where(eq(fxLocks.userId, userId));
+  }
+
+  async createInsurancePolicy(insertPolicy: InsertInsurancePolicy): Promise<InsurancePolicy> {
+    const [policy] = await db
+      .insert(insurancePolicies)
+      .values(insertPolicy)
+      .returning();
+    return policy;
+  }
+
+  async getInsurancePoliciesForUser(userId: number): Promise<InsurancePolicy[]> {
+    return await db.select().from(insurancePolicies).where(eq(insurancePolicies.userId, userId));
+  }
+
+  async createWireTransfer(insertTransfer: InsertWireTransfer): Promise<WireTransfer> {
+    const [transfer] = await db
+      .insert(wireTransfers)
+      .values(insertTransfer)
+      .returning();
+    return transfer;
+  }
+
+  async getWireTransfersForUser(userId: number): Promise<WireTransfer[]> {
+    return await db.select().from(wireTransfers).where(eq(wireTransfers.userId, userId));
+  }
+
+  async getWireTransferCounts(): Promise<{ inClearing: number; cleared: number; overdue: number }> {
+    const transfers = await db.select().from(wireTransfers);
+    return {
+      inClearing: transfers.filter(t => t.status === "in_clearing").length,
+      cleared: transfers.filter(t => t.status === "cleared").length,
+      overdue: transfers.filter(t => t.status === "overdue").length
+    };
+  }
+
+  async createActivity(insertActivity: InsertActivity): Promise<Activity> {
+    const [activity] = await db
+      .insert(activities)
+      .values(insertActivity)
+      .returning();
+    return activity;
+  }
+
+  async getActivitiesForUser(userId: number): Promise<Activity[]> {
+    return await db.select().from(activities).where(eq(activities.userId, userId));
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -439,4 +618,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
