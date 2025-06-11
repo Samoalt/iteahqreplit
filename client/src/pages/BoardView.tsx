@@ -5,11 +5,24 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
-import { Building, TrendingUp, DollarSign, Users, Calendar, MapPin } from "lucide-react";
+import { Building, TrendingUp, DollarSign, Users, Calendar, MapPin, FileText, Download } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { PDFGenerator } from "@/lib/pdfGenerator";
+import { useToast } from "@/hooks/use-toast";
 
 export default function BoardView() {
   const { user } = useAuth();
+  const { toast } = useToast();
+
+  // Fetch ESG metrics for PDF export
+  const { data: esgMetrics } = useQuery({
+    queryKey: ["/api/esg-metrics"],
+  });
+
+  // Fetch factory flags for PDF export
+  const { data: factoryFlags } = useQuery({
+    queryKey: ["/api/factory-flags"],
+  });
 
   // Mock data for board analytics
   const kpiData = {
@@ -44,6 +57,86 @@ export default function BoardView() {
     { name: "DUST", value: 5, color: "#F04438" }
   ];
 
+  // PDF export functions
+  const handleESGReportPDF = async () => {
+    try {
+      if (!esgMetrics || esgMetrics.length === 0) {
+        toast({
+          title: "No Data",
+          description: "No ESG metrics available for export",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const pdfBlob = await PDFGenerator.generateESGReportPDF(esgMetrics);
+      PDFGenerator.downloadPDF(pdfBlob, `ESG-Report-${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast({
+        title: "ESG Report Generated",
+        description: "ESG compliance report has been downloaded",
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to generate ESG report",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleFactoryPerformancePDF = async () => {
+    try {
+      if (!factoryFlags || factoryFlags.length === 0) {
+        toast({
+          title: "No Data",
+          description: "No factory performance data available for export",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const pdfBlob = await PDFGenerator.generateFactoryPerformanceReport(factoryFlags);
+      PDFGenerator.downloadPDF(pdfBlob, `Factory-Performance-Report-${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast({
+        title: "Factory Report Generated",
+        description: "Factory performance report has been downloaded",
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to generate factory performance report",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleBoardAnalyticsPDF = async () => {
+    try {
+      const analyticsData = {
+        kpiData,
+        factoryPerformance,
+        volumeData,
+        gradeDistribution
+      };
+      
+      const pdfBlob = await PDFGenerator.generateBoardAnalyticsPDF(analyticsData);
+      PDFGenerator.downloadPDF(pdfBlob, `Board-Analytics-Report-${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast({
+        title: "Analytics Report Generated",
+        description: "Board analytics report has been downloaded",
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to generate analytics report",
+        variant: "destructive",
+      });
+    }
+  };
+
   const payoutTimeline = [
     { factory: "Kangaita", stage: "Auction Complete", daysElapsed: 1, target: 7, status: "on-track" },
     { factory: "Michimikuru", stage: "Quality Assessment", daysElapsed: 3, target: 7, status: "on-track" },
@@ -77,9 +170,23 @@ export default function BoardView() {
           <h1 className="section-title text-foreground">Board View</h1>
           <p className="text-muted-foreground">KTDA oversight dashboard and analytics</p>
         </div>
-        <Badge className="bg-primary text-white">
-          Read-Only Access
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Button onClick={handleESGReportPDF} variant="outline" size="sm">
+            <FileText className="w-4 h-4 mr-2" />
+            ESG Report
+          </Button>
+          <Button onClick={handleFactoryPerformancePDF} variant="outline" size="sm">
+            <Download className="w-4 h-4 mr-2" />
+            Factory Report
+          </Button>
+          <Button onClick={handleBoardAnalyticsPDF} variant="outline" size="sm">
+            <FileText className="w-4 h-4 mr-2" />
+            Analytics Report
+          </Button>
+          <Badge className="bg-primary text-white">
+            Read-Only Access
+          </Badge>
+        </div>
       </div>
 
       <Tabs defaultValue="overview" className="w-full">

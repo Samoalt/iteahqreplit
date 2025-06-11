@@ -75,12 +75,29 @@ export default function InvoiceRow({ invoice }: InvoiceRowProps) {
     payInvoiceMutation.mutate(method);
   };
 
-  const handleDownloadPDF = () => {
-    // Mock PDF download
-    toast({
-      title: "PDF Downloaded",
-      description: `Invoice ${invoice.invoiceNumber}.pdf has been downloaded`,
-    });
+  const handleDownloadPDF = async () => {
+    try {
+      // Find lots associated with this invoice
+      const invoiceLots = lots?.filter((lot: Lot) => 
+        invoice.lotIds.includes(lot.lotId)
+      ) || [];
+      
+      const primaryLot = invoiceLots[0]; // Use first lot for PDF generation
+      
+      const pdfBlob = await PDFGenerator.generateInvoicePDF(invoice, primaryLot);
+      PDFGenerator.downloadPDF(pdfBlob, `Invoice-${invoice.invoiceNumber}.pdf`);
+      
+      toast({
+        title: "PDF Generated",
+        description: `Invoice ${invoice.invoiceNumber}.pdf has been downloaded`,
+      });
+    } catch (error) {
+      toast({
+        title: "PDF Generation Failed",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -120,6 +137,10 @@ export default function InvoiceRow({ invoice }: InvoiceRowProps) {
               <DropdownMenuItem onClick={() => handlePayment("wire")}>
                 <University className="mr-2 w-4 h-4" />
                 Wire (E-Slip)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handlePayment("stripe")}>
+                <CreditCard className="mr-2 w-4 h-4" />
+                Credit Card
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
