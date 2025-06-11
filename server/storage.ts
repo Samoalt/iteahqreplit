@@ -684,7 +684,14 @@ export class MemStorage implements IStorage {
 
   async createInvoice(insertInvoice: InsertInvoice): Promise<Invoice> {
     const id = parseInt(insertInvoice.invoiceNumber.split('-')[1]);
-    const invoice: Invoice = { ...insertInvoice, id, createdAt: new Date() };
+    const invoice: Invoice = { 
+      ...insertInvoice, 
+      id, 
+      createdAt: new Date(),
+      status: insertInvoice.status || "pending",
+      paymentMethod: insertInvoice.paymentMethod || null,
+      paidAt: insertInvoice.paidAt || null
+    };
     this.invoices.set(insertInvoice.invoiceNumber, invoice);
     return invoice;
   }
@@ -721,7 +728,13 @@ export class MemStorage implements IStorage {
   // Instant Cash Advance methods
   async createInstantCashAdvance(insertAdvance: InsertInstantCashAdvance): Promise<InstantCashAdvance> {
     const id = this.currentAdvanceId++;
-    const advance: InstantCashAdvance = { ...insertAdvance, id, createdAt: new Date() };
+    const advance: InstantCashAdvance = { 
+      ...insertAdvance, 
+      id, 
+      createdAt: new Date(),
+      status: insertAdvance.status || "pending",
+      repaidAt: insertAdvance.repaidAt || null
+    };
     this.instantCashAdvances.set(id, advance);
     return advance;
   }
@@ -733,7 +746,12 @@ export class MemStorage implements IStorage {
   // FX Lock methods
   async createFxLock(insertFxLock: InsertFxLock): Promise<FxLock> {
     const id = this.currentFxLockId++;
-    const fxLock: FxLock = { ...insertFxLock, id, createdAt: new Date() };
+    const fxLock: FxLock = { 
+      ...insertFxLock, 
+      id, 
+      createdAt: new Date(),
+      status: insertFxLock.status || "active"
+    };
     this.fxLocks.set(id, fxLock);
     return fxLock;
   }
@@ -745,7 +763,12 @@ export class MemStorage implements IStorage {
   // Insurance Policy methods
   async createInsurancePolicy(insertPolicy: InsertInsurancePolicy): Promise<InsurancePolicy> {
     const id = parseInt(insertPolicy.policyNumber.split('-')[1]);
-    const policy: InsurancePolicy = { ...insertPolicy, id, createdAt: new Date() };
+    const policy: InsurancePolicy = { 
+      ...insertPolicy, 
+      id, 
+      createdAt: new Date(),
+      status: insertPolicy.status || "active"
+    };
     this.insurancePolicies.set(insertPolicy.policyNumber, policy);
     return policy;
   }
@@ -757,7 +780,13 @@ export class MemStorage implements IStorage {
   // Wire Transfer methods
   async createWireTransfer(insertTransfer: InsertWireTransfer): Promise<WireTransfer> {
     const id = this.currentTransferId++;
-    const transfer: WireTransfer = { ...insertTransfer, id, createdAt: new Date() };
+    const transfer: WireTransfer = { 
+      ...insertTransfer, 
+      id, 
+      createdAt: new Date(),
+      status: insertTransfer.status || "pending",
+      clearedAt: insertTransfer.clearedAt || null
+    };
     this.wireTransfers.set(id, transfer);
     return transfer;
   }
@@ -796,7 +825,15 @@ export class MemStorage implements IStorage {
 
   async createNotification(notification: InsertNotification): Promise<Notification> {
     const id = 1;
-    const created: Notification = { ...notification, id, createdAt: new Date() };
+    const created: Notification = { 
+      ...notification, 
+      id, 
+      createdAt: new Date(),
+      metadata: notification.metadata || null,
+      priority: notification.priority || "medium",
+      read: notification.read || false,
+      actionUrl: notification.actionUrl || null
+    };
     return created;
   }
 
@@ -815,7 +852,14 @@ export class MemStorage implements IStorage {
 
   async createLenderPool(pool: InsertLenderPool): Promise<LenderPool> {
     const id = 1;
-    const created: LenderPool = { ...pool, id, createdAt: new Date() };
+    const created: LenderPool = { 
+      ...pool, 
+      id, 
+      createdAt: new Date(),
+      isActive: pool.isActive !== false,
+      description: pool.description || null,
+      riskTier: pool.riskTier || "medium"
+    };
     return created;
   }
 
