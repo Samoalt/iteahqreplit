@@ -127,3 +127,63 @@ export function useAuth() {
     switchRole
   };
 }
+
+export function AuthProvider({ children }: { children: React.ReactNode }): React.ReactElement {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        const data = await apiRequest('GET', '/auth/me');
+        setUser(data);
+      }
+    } catch (error) {
+      localStorage.removeItem('auth_token');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const data = await apiRequest('POST', '/auth/login', { email, password });
+      if (data.token && data.user) {
+        localStorage.setItem('auth_token', data.token);
+        setUser(data.user);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Login failed:', error);
+      return false;
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('auth_token');
+    setUser(null);
+  };
+
+  const switchRole = (newRole: string) => {
+    if (user) {
+      setUser({
+        ...user,
+        role: newRole as "producer" | "buyer" | "ktda_ro" | "ops_admin"
+      });
+    }
+  };
+
+  const checkAuth = async () => {
+    await checkAuthStatus();
+  };
+
+  const value = { user, isLoading, login, logout, checkAuth, switchRole };
+  
+  return React.createElement(AuthContext.Provider, { value }, children);
+}
