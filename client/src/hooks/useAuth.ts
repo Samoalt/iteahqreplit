@@ -56,15 +56,19 @@ export function useAuth() {
     }
   };
 
-  const login = async (username: string, password: string) => {
+  const login = async (email: string, password: string) => {
     try {
-      const response = await apiRequest('POST', '/api/auth/login', { username, password });
-      const data = await response.json();
-      globalUser = data.user;
-      notifyListeners();
-      return data.user;
+      const response = await apiRequest('POST', '/auth/login', { email, password });
+      if (response.token && response.user) {
+        localStorage.setItem('auth_token', response.token);
+        globalUser = response.user;
+        notifyListeners();
+        return true;
+      }
+      return false;
     } catch (error) {
-      throw error;
+      console.error('Login failed:', error);
+      return false;
     }
   };
 

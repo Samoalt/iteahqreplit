@@ -13,6 +13,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Authentication routes
+  app.post("/auth/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      // Demo authentication - in production use proper password hashing
+      const demoUsers = [
+        { id: 1, email: "producer@iteaflow.com", password: "demo123", role: "producer", firstName: "Michael", lastName: "Wambugu", username: "michael.wambugu" },
+        { id: 2, email: "buyer@iteaflow.com", password: "demo123", role: "buyer", firstName: "Sarah", lastName: "Chen", username: "sarah.chen" },
+        { id: 3, email: "board@ktda.com", password: "demo123", role: "ktda_ro", firstName: "David", lastName: "Kimani", username: "david.kimani" },
+        { id: 4, email: "admin@iteaflow.com", password: "demo123", role: "ops_admin", firstName: "Admin", lastName: "User", username: "admin.user" }
+      ];
+      
+      const user = demoUsers.find(u => u.email === email && u.password === password);
+      
+      if (user) {
+        const token = `demo_token_${user.id}`;
+        res.json({
+          token,
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            username: user.username,
+            role: user.role,
+            isActive: true,
+            emailVerified: true,
+            kycStatus: "approved",
+            status: "active"
+          }
+        });
+      } else {
+        res.status(401).json({ message: "Invalid credentials" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Login failed" });
+    }
+  });
+
+  app.post("/auth/signup", async (req, res) => {
+    try {
+      const { email, password, role, legalName, country, kraPin, phone, currency, walletType, bankIban } = req.body;
+      
+      res.json({
+        message: "Registration successful",
+        user: {
+          id: Math.floor(Math.random() * 1000),
+          email,
+          role,
+          status: "pending",
+          emailVerified: false,
+          kycStatus: "pending"
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Registration failed" });
+    }
+  });
+
+  app.post("/auth/forgot", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      // Simulate sending reset email
+      res.json({ message: "Reset email sent" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to send reset email" });
+    }
+  });
+
+  app.get("/auth/me", async (req, res) => {
+    try {
+      const token = req.headers.authorization?.replace('Bearer ', '');
+      
+      if (token && token.startsWith('demo_token_')) {
+        const userId = parseInt(token.replace('demo_token_', ''));
+        const demoUsers = [
+          { id: 1, email: "producer@iteaflow.com", role: "producer", firstName: "Michael", lastName: "Wambugu", username: "michael.wambugu" },
+          { id: 2, email: "buyer@iteaflow.com", role: "buyer", firstName: "Sarah", lastName: "Chen", username: "sarah.chen" },
+          { id: 3, email: "board@ktda.com", role: "ktda_ro", firstName: "David", lastName: "Kimani", username: "david.kimani" },
+          { id: 4, email: "admin@iteaflow.com", role: "ops_admin", firstName: "Admin", lastName: "User", username: "admin.user" }
+        ];
+        
+        const user = demoUsers.find(u => u.id === userId);
+        if (user) {
+          res.json({
+            ...user,
+            isActive: true,
+            emailVerified: true,
+            kycStatus: "approved",
+            status: "active"
+          });
+        } else {
+          res.status(401).json({ message: "Invalid token" });
+        }
+      } else {
+        res.status(401).json({ message: "No token provided" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Authentication check failed" });
+    }
+  });
+
   // WebSocket connection handling
   io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
