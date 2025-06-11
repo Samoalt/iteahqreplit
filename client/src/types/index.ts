@@ -2,10 +2,11 @@ export interface User {
   id: number;
   username: string;
   role: 'producer' | 'buyer' | 'ktda_ro' | 'ops_admin';
-  workspace: 'Producer' | 'Buyer' | 'KTDA Board';
+  workspace: 'Producer' | 'Buyer' | 'KTDA Board' | 'Operations';
   firstName: string;
   lastName: string;
   email: string;
+  isActive: boolean;
 }
 
 export interface AuctionTimer {

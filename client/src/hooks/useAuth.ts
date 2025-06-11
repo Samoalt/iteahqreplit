@@ -2,21 +2,55 @@ import { useState, useEffect } from 'react';
 import { User } from '@/types';
 import { apiRequest } from '@/lib/queryClient';
 
+// Global state for role switching
+let globalUser: User | null = null;
+let globalListeners: Set<(user: User | null) => void> = new Set();
+
+const notifyListeners = () => {
+  globalListeners.forEach(listener => listener(globalUser));
+};
+
+const initializeUser = () => {
+  if (!globalUser) {
+    globalUser = {
+      id: 1,
+      username: "sarah.chen",
+      firstName: "Sarah",
+      lastName: "Chen",
+      role: "buyer",
+      email: "sarah.chen@example.com",
+      isActive: true,
+      workspace: "Buyer"
+    };
+  }
+};
+
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    checkAuth();
+    initializeUser();
+    setUser(globalUser);
+    setIsLoading(false);
+    
+    // Add this component to listeners
+    globalListeners.add(setUser);
+    
+    return () => {
+      globalListeners.delete(setUser);
+    };
   }, []);
 
   const checkAuth = async () => {
     try {
       const response = await apiRequest('GET', '/api/auth/me');
       const data = await response.json();
-      setUser(data.user);
+      globalUser = data.user;
+      notifyListeners();
     } catch (error) {
-      setUser(null);
+      initializeUser();
+      notifyListeners();
     } finally {
       setIsLoading(false);
     }
@@ -26,7 +60,8 @@ export function useAuth() {
     try {
       const response = await apiRequest('POST', '/api/auth/login', { username, password });
       const data = await response.json();
-      setUser(data.user);
+      globalUser = data.user;
+      notifyListeners();
       return data.user;
     } catch (error) {
       throw error;
@@ -34,26 +69,31 @@ export function useAuth() {
   };
 
   const logout = () => {
-    setUser(null);
+    globalUser = null;
+    notifyListeners();
   };
 
   const switchRole = (newRole: string) => {
-    if (user) {
-      const updatedUser = {
-        ...user,
-        role: newRole as "producer" | "buyer" | "ktda_ro" | "ops_admin",
-        firstName: newRole === "producer" ? "Michael" : 
-                  newRole === "buyer" ? "Sarah" :
-                  newRole === "ktda_ro" ? "David" : "Admin",
-        lastName: newRole === "producer" ? "Wambugu" : 
-                 newRole === "buyer" ? "Chen" :
-                 newRole === "ktda_ro" ? "Kimani" : "User",
-        username: newRole === "producer" ? "michael.wambugu" : 
-                 newRole === "buyer" ? "sarah.chen" :
-                 newRole === "ktda_ro" ? "david.kimani" : "admin.user"
-      };
-      setUser(updatedUser);
-    }
+    const updatedUser: User = {
+      id: 1,
+      email: "test@example.com",
+      isActive: true,
+      role: newRole as "producer" | "buyer" | "ktda_ro" | "ops_admin",
+      firstName: newRole === "producer" ? "Michael" : 
+                newRole === "buyer" ? "Sarah" :
+                newRole === "ktda_ro" ? "David" : "Admin",
+      lastName: newRole === "producer" ? "Wambugu" : 
+               newRole === "buyer" ? "Chen" :
+               newRole === "ktda_ro" ? "Kimani" : "User",
+      username: newRole === "producer" ? "michael.wambugu" : 
+               newRole === "buyer" ? "sarah.chen" :
+               newRole === "ktda_ro" ? "david.kimani" : "admin.user",
+      workspace: (newRole === "producer" ? "Producer" :
+                 newRole === "buyer" ? "Buyer" :
+                 newRole === "ktda_ro" ? "KTDA Board" : "Operations") as "Producer" | "Buyer" | "KTDA Board" | "Operations"
+    };
+    globalUser = updatedUser;
+    notifyListeners();
   };
 
   return {
