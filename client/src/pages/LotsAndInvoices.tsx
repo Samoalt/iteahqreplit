@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Zap } from "lucide-react";
+import { Plus, Zap, FileText, CreditCard } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import LotCard from "@/components/lots/LotCard";
@@ -13,6 +13,8 @@ import LiveBiddingWidget from "@/components/lots/LiveBiddingWidget";
 import BidModal from "@/components/lots/BidModal";
 import CashDrawer from "@/components/lots/CashDrawer";
 import InvoiceRow from "@/components/invoices/InvoiceRow";
+import { PDFGenerator } from "@/lib/pdfGenerator";
+import { useToast } from "@/hooks/use-toast";
 import { Lot } from "@shared/schema";
 
 export default function LotsAndInvoices() {

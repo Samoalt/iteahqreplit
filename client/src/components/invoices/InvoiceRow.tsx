@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Wallet, University, FileText, Check } from "lucide-react";
+import { ChevronDown, Wallet, University, FileText, Check, CreditCard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Invoice } from "@shared/schema";
+import { PDFGenerator } from "@/lib/pdfGenerator";
+import { Invoice, Lot } from "@shared/schema";
 
 interface InvoiceRowProps {
   invoice: Invoice;
@@ -16,6 +17,11 @@ export default function InvoiceRow({ invoice }: InvoiceRowProps) {
   const [isPayDropdownOpen, setIsPayDropdownOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Get lot data for PDF generation
+  const { data: lots } = useQuery({
+    queryKey: ["/api/lots"],
+  });
 
   const payInvoiceMutation = useMutation({
     mutationFn: async (method: string) => {
