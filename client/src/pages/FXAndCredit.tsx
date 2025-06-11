@@ -134,8 +134,8 @@ export default function FXAndCredit() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">FX & Credit</h1>
-          <p className="text-slate-600">Manage currency locks and credit facilities</p>
+          <h1 className="section-title text-foreground">FX & Credit</h1>
+          <p className="text-muted-foreground">Manage currency locks and credit facilities</p>
         </div>
       </div>
 
@@ -148,9 +148,9 @@ export default function FXAndCredit() {
 
         {/* FX Lock Tab */}
         <TabsContent value="fx-lock" className="space-y-6">
-          <Card>
+          <Card className="feature-card">
             <CardHeader>
-              <CardTitle>Currency Lock</CardTitle>
+              <CardTitle className="card-title">Currency Lock</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

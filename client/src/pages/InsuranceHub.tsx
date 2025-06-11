@@ -149,8 +149,8 @@ export default function InsuranceHub() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Insurance Hub</h1>
-          <p className="text-slate-600">Protect your tea investments with comprehensive coverage</p>
+          <h1 className="section-title text-foreground">Insurance Hub</h1>
+          <p className="text-muted-foreground">Protect your tea investments with comprehensive coverage</p>
         </div>
       </div>
 

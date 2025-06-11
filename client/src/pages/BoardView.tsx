@@ -74,8 +74,8 @@ export default function BoardView() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Board View</h1>
-          <p className="text-slate-600">KTDA oversight dashboard and analytics</p>
+          <h1 className="section-title text-foreground">Board View</h1>
+          <p className="text-muted-foreground">KTDA oversight dashboard and analytics</p>
         </div>
         <Badge className="bg-primary text-white">
           Read-Only Access

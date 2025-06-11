@@ -118,8 +118,8 @@ export default function InstantCash() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Instant Cash</h1>
-          <p className="text-slate-600">Get immediate cash advances on your tea lots</p>
+          <h1 className="section-title text-foreground">Instant Cash</h1>
+          <p className="text-muted-foreground">Get immediate cash advances on your tea lots</p>
         </div>
         <Badge className="bg-status-amber text-white">
           <Zap className="w-4 h-4 mr-1" />
@@ -129,9 +129,9 @@ export default function InstantCash() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Application Form */}
-        <Card className="lg:col-span-2">
+        <Card className="feature-card lg:col-span-2">
           <CardHeader>
-            <CardTitle className="flex items-center">
+            <CardTitle className="card-title flex items-center">
               <Zap className="w-5 h-5 mr-2 text-status-amber" />
               Cash Advance Application
             </CardTitle>
