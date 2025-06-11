@@ -73,9 +73,12 @@ export default function TopBar() {
         <div className="flex items-center space-x-4">
           {/* Workspace Switcher */}
           <div className="relative">
-            <select className="bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+            <select 
+              className="bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              defaultValue={user.workspace === "Buyer" ? "buyer" : user.workspace === "Producer" ? "producer" : "ktda"}
+            >
               <option value="producer">Producer Workspace</option>
-              <option value="buyer" selected={user.workspace === "Buyer"}>Buyer Workspace</option>
+              <option value="buyer">Buyer Workspace</option>
               <option value="ktda">KTDA Board</option>
             </select>
           </div>

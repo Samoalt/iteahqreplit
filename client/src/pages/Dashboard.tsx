@@ -25,36 +25,139 @@ export default function Dashboard() {
 
   if (!user) return null;
 
-  const kpiCards = [
-    {
-      label: "Active Bids",
-      value: kpis?.activeBids?.value || 24,
-      change: kpis?.activeBids?.change || "+12.5%",
-      icon: Gavel,
-      color: "text-accent"
-    },
-    {
-      label: "Portfolio Value",
-      value: kpis?.portfolioValue?.value || "$847,230",
-      change: kpis?.portfolioValue?.change || "+8.2%",
-      icon: PieChart,
-      color: "text-primary"
-    },
-    {
-      label: "Pending Invoices",
-      value: kpis?.pendingInvoices?.value || 7,
-      change: kpis?.pendingInvoices?.change || "2 due today",
-      icon: FileText,
-      color: "text-status-amber"
-    },
-    {
-      label: "Credit Available",
-      value: kpis?.creditAvailable?.value || "$425K",
-      change: kpis?.creditAvailable?.change || "85% utilization",
-      icon: CreditCard,
-      color: "text-status-blue"
+  // Role-specific KPI cards based on user stories
+  const getKpiCards = () => {
+    if (user.role === "producer") {
+      return [
+        {
+          label: "Cash-to-Cash",
+          value: kpis?.cashToCash?.value || "18h",
+          change: kpis?.cashToCash?.change || "Target: <24h",
+          icon: Clock,
+          color: "text-status-green",
+          description: "Time from lot sale to factory payment"
+        },
+        {
+          label: "Lots Ready for Cash",
+          value: kpis?.lotsReadyForCash?.value || 12,
+          change: kpis?.lotsReadyForCash?.change || "⚡ Instant eligible",
+          icon: Gavel,
+          color: "text-status-amber"
+        },
+        {
+          label: "Portfolio Value",
+          value: kpis?.portfolioValue?.value || "$847,230",
+          change: kpis?.portfolioValue?.change || "+8.2%",
+          icon: PieChart,
+          color: "text-primary"
+        },
+        {
+          label: "Active Advances",
+          value: kpis?.activeAdvances?.value || 3,
+          change: kpis?.activeAdvances?.change || "$45,200 outstanding",
+          icon: CreditCard,
+          color: "text-accent"
+        }
+      ];
+    } else if (user.role === "buyer") {
+      return [
+        {
+          label: "Lots Won & Unpaid",
+          value: kpis?.lotsWonUnpaid?.value || 5,
+          change: kpis?.lotsWonUnpaid?.change || "2 due today",
+          icon: FileText,
+          color: "text-status-red",
+          description: "Lots requiring payment settlement"
+        },
+        {
+          label: "Active Bids",
+          value: kpis?.activeBids?.value || 24,
+          change: kpis?.activeBids?.change || "+12.5%",
+          icon: Gavel,
+          color: "text-accent"
+        },
+        {
+          label: "Portfolio Value",
+          value: kpis?.portfolioValue?.value || "$847,230",
+          change: kpis?.portfolioValue?.change || "+8.2%",
+          icon: PieChart,
+          color: "text-primary"
+        },
+        {
+          label: "FX Exposure",
+          value: kpis?.fxExposure?.value || "$120,450",
+          change: kpis?.fxExposure?.change || "85% hedged",
+          icon: TrendingUp,
+          color: "text-status-green"
+        }
+      ];
+    } else if (user.role === "ktda_ro") {
+      return [
+        {
+          label: "Factories with Payout >24h",
+          value: kpis?.factoriesDelayed?.value || 2,
+          change: kpis?.factoriesDelayed?.change || "Target: <2%",
+          icon: Clock,
+          color: "text-status-red",
+          description: "Factories exceeding payout target"
+        },
+        {
+          label: "Total GMV",
+          value: kpis?.totalGMV?.value || "$2.4M",
+          change: kpis?.totalGMV?.change || "+15.3% vs last month",
+          icon: PieChart,
+          color: "text-primary"
+        },
+        {
+          label: "Active Factories",
+          value: kpis?.activeFactories?.value || 47,
+          change: kpis?.activeFactories?.change || "3 new this month",
+          icon: Gavel,
+          color: "text-status-green"
+        },
+        {
+          label: "ESG Compliance",
+          value: kpis?.esgCompliance?.value || "94%",
+          change: kpis?.esgCompliance?.change || "+2% improvement",
+          icon: TrendingUp,
+          color: "text-status-green"
+        }
+      ];
+    } else {
+      return [
+        {
+          label: "System Health",
+          value: kpis?.systemHealth?.value || "99.8%",
+          change: kpis?.systemHealth?.change || "Excellent",
+          icon: TrendingUp,
+          color: "text-status-green"
+        },
+        {
+          label: "Active Users",
+          value: kpis?.activeUsers?.value || 189,
+          change: kpis?.activeUsers?.change || "+12 today",
+          icon: Gavel,
+          color: "text-accent"
+        },
+        {
+          label: "Transaction Volume",
+          value: kpis?.transactionVolume?.value || "$847,230",
+          change: kpis?.transactionVolume?.change || "+8.2%",
+          icon: PieChart,
+          color: "text-primary"
+        },
+        {
+          label: "Support Tickets",
+          value: kpis?.supportTickets?.value || 3,
+          change: kpis?.supportTickets?.change || "2 pending",
+          icon: FileText,
+          color: "text-status-amber"
+        }
+      ];
     }
-  ];
+  };
+
+  const kpiCards = getKpiCards();
 
   return (
     <div className="space-y-6">

@@ -1,0 +1,57 @@
+iTea Flow – Feature & User-Story Matrix
+(Everything a Buyer, Producer, or KTDA Board user can do, screen-by-screen.)
+
+#	Module / Feature	Producer user story	Buyer user story	KTDA Board user story
+1	Dashboard (home)	“As a Producer, I see today’s Cash-to-Cash card so I know how long money takes to reach my factory.”
+Flow → Dashboard → KPI cards update live.	“As a Buyer, I see ‘Lots Won & Unpaid’ so I never forget to settle.”	“As KTDA, I open the dashboard and instantly spot any factory with payout lag >24 h.”
+2A	Catalogue tab (Lots & Invoices)	“List my new lots automatically and show a ⚡ badge if they’re loan-ready.”	“Filter PF1 lots, Quality ★4+ and click ❤️ to watch them before the auction.”	“Browse all factories’ catalogue without editing rights.”
+2B	Live Lots tab	—	“Bid live in the widget, lock FX, and get a toast ‘You’re leading’.”	“View bid timer and high-level price, no bid button.”
+2C	Invoices tab	“Open the invoice for my sold lots and track when cash lands.”	“Choose Pay → Wallet or Pay → Wire (E-Slip PDF) and download the slip.”	“Monitor invoices marked Paid ✔ vs. In Clearing.”
+3	Wallets & Settlement	“Bulk M-Pesa my out-growers from the factory KES wallet.”	“Top-up USD wallet via ACH and see ledger lines instantly.”	“No wallet access; read-only ledger by factory.”
+4	Instant Cash	“Draw 75 % LTV on a packed lot inside 10 seconds; repay after buyer pays.”	—	“See which factories drew cash and utilisation %.”
+5A	FX Lock (FX & Credit)	—	“Lock USD→KES rate when I place a bid so my landed cost is fixed.”	“See cumulative FX savings across factories.”
+5B	Bid-Credit Line	—	“Increase my credit limit instead of posting a bank guarantee.”	“Track total lines outstanding per buyer.”
+5C	Lender Pools	“View available pools & APR; my loan draws show which pool funded them.”	—	“Monitor utilisation & risk tier of each pool.”
+6	Insurance Hub	“Buy drought cover (parametric), claim auto-pays if rainfall trigger met.”	“Add marine cargo cover at checkout; claim if shipment lost.”	“View cover counts, claim ratios per factory & buyer.”
+7	Statements & Reports	“Download PDF of all lot-level debits/credits for audit.”	“Export CSV for my ERP with VAT lines.”	“Download board-pack PDF (GMV, cash lag, ESG).”
+8	Alerts	Loan margin call • Quality drift • Insurance trigger	Out-bid • FX buffer breach • Invoice overdue	Factory payout > 24 h • ESG downgrade
+9	Board View (workspace only for KTDA)	—	—	Tabs:
+• Overview KPI
+• Factories table
+• Payout timeline
+• Analytics heat-map
+Hover row → details modal.
+10	Admin (iTea Ops)	—	—	—
+
+Detailed User Stories (condensed)
+Producer
+Auto-list lot – “As a producer I want each batch to appear in Catalogue in < 10 min so buyers see fresh stock.”
+
+Draw loan – “I slide to 80 % LTV and click Accept; wallet credits instantly.”
+
+Buy drought cover – “Select rainfall index, confirm premium, see policy card turn active.”
+
+Monthly statement – “Choose 1 May-31 May, click PDF, download VAT-compliant report.”
+
+Buyer
+Bid & lock FX – “Enter 143.20, enable Lock FX, confirm; modal shows final KES cost.”
+
+Settle via wallet – “Open invoice, choose Wallet, OTP confirm; status flips to Paid ✔.”
+
+Marine cover – “Tick ‘Add cargo cover’ at checkout, premium auto-adds to invoice.”
+
+ERP webhook – “Payment posts to QuickBooks without manual CSV.”
+
+KTDA Board
+Monitor payouts – “Factories tab: sort by payout lag, red rows first.”
+
+Export pack – “Click Download Board Pack; receives PDF with GMV chart & ESG radar.”
+
+Flag issue – “Select Factory 12, click Flag; ops receives alert ticket.”
+
+Core Success Metrics
+Metric	Target	Applies to
+Cash-to-Cash (factory)	≤ 24 h	Producer
+FX spread vs. bank	–50 bp	Buyer
+Loan uptake (eligible lots)	≥ 70 %	Producer
+Payout lag > 24 h	< 2 % of lots	KTDA oversight
