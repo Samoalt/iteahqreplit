@@ -53,9 +53,6 @@ export function useAuth() {
                  newRole === "ktda_ro" ? "david.kimani" : "admin.user"
       };
       setUser(updatedUser);
-      
-      // Force page reload to refresh all components with new role
-      window.location.href = '/dashboard';
     }
   };
 

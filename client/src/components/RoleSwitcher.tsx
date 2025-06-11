@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { User, Building2, ShoppingCart, Settings } from "lucide-react";
 
@@ -26,32 +25,27 @@ export default function RoleSwitcher() {
           </div>
           <div>
             <p className="text-sm font-medium text-amber-800">Demo Mode - Role Switching</p>
-            <p className="text-xs text-amber-600">Currently viewing as: {currentRole?.label}</p>
+            <p className="text-xs text-amber-600">Currently viewing as: {currentRole?.label} ({user.role})</p>
           </div>
         </div>
         
-        <div className="flex items-center space-x-3">
-          <Select value={user.role} onValueChange={switchRole}>
-            <SelectTrigger className="w-48 bg-white border-amber-200">
-              <SelectValue placeholder="Switch role" />
-            </SelectTrigger>
-            <SelectContent>
-              {roles.map((role) => {
-                const Icon = role.icon;
-                return (
-                  <SelectItem key={role.value} value={role.value}>
-                    <div className="flex items-center space-x-2">
-                      <Icon className="w-4 h-4" />
-                      <div>
-                        <div className="font-medium">{role.label}</div>
-                        <div className="text-xs text-muted-foreground">{role.description}</div>
-                      </div>
-                    </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
+        <div className="flex items-center space-x-2">
+          {roles.map((role) => {
+            const Icon = role.icon;
+            const isActive = user.role === role.value;
+            return (
+              <Button
+                key={role.value}
+                size="sm"
+                variant={isActive ? "default" : "outline"}
+                onClick={() => switchRole(role.value)}
+                className={`flex items-center space-x-2 ${isActive ? "bg-primary text-white" : "bg-white"}`}
+              >
+                <Icon className="w-4 h-4" />
+                <span className="hidden sm:inline">{role.label.split(' ')[0]}</span>
+              </Button>
+            );
+          })}
         </div>
       </div>
     </div>
