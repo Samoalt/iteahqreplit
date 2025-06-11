@@ -1,0 +1,442 @@
+import {
+  users, lots, bids, invoices, wallets, instantCashAdvances,
+  fxLocks, insurancePolicies, wireTransfers, activities,
+  type User, type InsertUser, type Lot, type InsertLot,
+  type Bid, type InsertBid, type Invoice, type InsertInvoice,
+  type Wallet, type InsertWallet, type InstantCashAdvance, type InsertInstantCashAdvance,
+  type FxLock, type InsertFxLock, type InsurancePolicy, type InsertInsurancePolicy,
+  type WireTransfer, type InsertWireTransfer, type Activity, type InsertActivity
+} from "@shared/schema";
+
+export interface IStorage {
+  // Users
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  
+  // Lots
+  getLots(): Promise<Lot[]>;
+  getLot(id: string): Promise<Lot | undefined>;
+  createLot(lot: InsertLot): Promise<Lot>;
+  updateLotStatus(lotId: string, status: string): Promise<void>;
+  
+  // Bids
+  getBidsForLot(lotId: string): Promise<Bid[]>;
+  createBid(bid: InsertBid): Promise<Bid>;
+  getWinningBid(lotId: string): Promise<Bid | undefined>;
+  
+  // Invoices
+  getInvoicesForUser(userId: number): Promise<Invoice[]>;
+  createInvoice(invoice: InsertInvoice): Promise<Invoice>;
+  updateInvoiceStatus(invoiceId: string, status: string, paymentMethod?: string): Promise<void>;
+  
+  // Wallets
+  getWalletsForUser(userId: number): Promise<Wallet[]>;
+  getWallet(userId: number, currency: string): Promise<Wallet | undefined>;
+  updateWalletBalance(userId: number, currency: string, amount: string): Promise<void>;
+  
+  // Instant Cash Advances
+  createInstantCashAdvance(advance: InsertInstantCashAdvance): Promise<InstantCashAdvance>;
+  getInstantCashAdvancesForUser(userId: number): Promise<InstantCashAdvance[]>;
+  
+  // FX Locks
+  createFxLock(fxLock: InsertFxLock): Promise<FxLock>;
+  getFxLocksForUser(userId: number): Promise<FxLock[]>;
+  
+  // Insurance Policies
+  createInsurancePolicy(policy: InsertInsurancePolicy): Promise<InsurancePolicy>;
+  getInsurancePoliciesForUser(userId: number): Promise<InsurancePolicy[]>;
+  
+  // Wire Transfers
+  createWireTransfer(transfer: InsertWireTransfer): Promise<WireTransfer>;
+  getWireTransfersForUser(userId: number): Promise<WireTransfer[]>;
+  getWireTransferCounts(): Promise<{ inClearing: number; cleared: number; overdue: number }>;
+  
+  // Activities
+  createActivity(activity: InsertActivity): Promise<Activity>;
+  getActivitiesForUser(userId: number): Promise<Activity[]>;
+}
+
+export class MemStorage implements IStorage {
+  private users: Map<number, User> = new Map();
+  private lots: Map<string, Lot> = new Map();
+  private bids: Map<number, Bid> = new Map();
+  private invoices: Map<string, Invoice> = new Map();
+  private wallets: Map<string, Wallet> = new Map(); // key: userId_currency
+  private instantCashAdvances: Map<number, InstantCashAdvance> = new Map();
+  private fxLocks: Map<number, FxLock> = new Map();
+  private insurancePolicies: Map<string, InsurancePolicy> = new Map();
+  private wireTransfers: Map<number, WireTransfer> = new Map();
+  private activities: Map<number, Activity> = new Map();
+  
+  private currentUserId = 1;
+  private currentBidId = 1;
+  private currentAdvanceId = 1;
+  private currentFxLockId = 1;
+  private currentTransferId = 1;
+  private currentActivityId = 1;
+
+  constructor() {
+    this.initializeData();
+  }
+
+  private initializeData() {
+    // Create demo users
+    const demoUsers = [
+      {
+        username: "sarah.chen",
+        password: "password123",
+        role: "buyer",
+        workspace: "Buyer",
+        firstName: "Sarah",
+        lastName: "Chen",
+        email: "sarah.chen@buyer.com",
+        isActive: true
+      },
+      {
+        username: "john.producer",
+        password: "password123",
+        role: "producer",
+        workspace: "Producer",
+        firstName: "John",
+        lastName: "Kamau",
+        email: "john.kamau@producer.com",
+        isActive: true
+      },
+      {
+        username: "board.member",
+        password: "password123",
+        role: "ktda_ro",
+        workspace: "KTDA Board",
+        firstName: "Mary",
+        lastName: "Wanjiku",
+        email: "mary.wanjiku@ktda.com",
+        isActive: true
+      }
+    ];
+
+    demoUsers.forEach(user => {
+      const id = this.currentUserId++;
+      this.users.set(id, { ...user, id });
+      
+      // Create wallets for each user
+      const kesWallet: Wallet = {
+        id: parseInt(`${id}1`),
+        userId: id,
+        currency: "KES",
+        balance: "2847356.00",
+        availableBalance: "2847356.00",
+        updatedAt: new Date()
+      };
+      
+      const usdWallet: Wallet = {
+        id: parseInt(`${id}2`),
+        userId: id,
+        currency: "USD",
+        balance: "21847.00",
+        availableBalance: "21847.00",
+        updatedAt: new Date()
+      };
+      
+      this.wallets.set(`${id}_KES`, kesWallet);
+      this.wallets.set(`${id}_USD`, usdWallet);
+    });
+
+    // Create demo lots
+    const demoLots = [
+      {
+        lotId: "LOT-3456",
+        saleNo: "SALE-2024-001",
+        factory: "Kangaita Tea Factory",
+        grade: "PEKOE",
+        kg: "2450.00",
+        offerPrice: "4.75",
+        reservePrice: "4.50",
+        qualityStars: 4,
+        esgCertified: true,
+        status: "live",
+        canBid: true,
+        canInstantCash: true,
+        auctionEndTime: new Date(Date.now() + 3600000) // 1 hour from now
+      },
+      {
+        lotId: "LOT-3457",
+        saleNo: "SALE-2024-001",
+        factory: "Michimikuru Tea",
+        grade: "BOPF",
+        kg: "1850.00",
+        offerPrice: "4.20",
+        reservePrice: "4.00",
+        qualityStars: 5,
+        esgCertified: true,
+        status: "live",
+        canBid: true,
+        canInstantCash: false,
+        auctionEndTime: new Date(Date.now() + 3600000)
+      },
+      {
+        lotId: "LOT-3458",
+        saleNo: "SALE-2024-001",
+        factory: "Githambo Factory",
+        grade: "BROKEN",
+        kg: "3200.00",
+        offerPrice: "3.95",
+        reservePrice: "3.75",
+        qualityStars: 3,
+        esgCertified: false,
+        status: "sold",
+        canBid: false,
+        canInstantCash: false,
+        auctionEndTime: new Date(Date.now() - 3600000) // 1 hour ago
+      }
+    ];
+
+    demoLots.forEach(lot => {
+      this.lots.set(lot.lotId, { ...lot, id: parseInt(lot.lotId.split('-')[1]), createdAt: new Date() });
+    });
+
+    // Create demo invoices
+    const demoInvoices = [
+      {
+        invoiceNumber: "INV-8901",
+        buyerId: 1,
+        lotIds: ["LOT-3456", "LOT-3457"],
+        amountUSD: "23475.00",
+        status: "pending",
+        paymentMethod: null
+      },
+      {
+        invoiceNumber: "INV-8902",
+        buyerId: 1,
+        lotIds: ["LOT-3458"],
+        amountUSD: "12640.00",
+        status: "in_clearing",
+        paymentMethod: "wire"
+      },
+      {
+        invoiceNumber: "INV-8903",
+        buyerId: 1,
+        lotIds: ["LOT-3459", "LOT-3460"],
+        amountUSD: "18230.00",
+        status: "paid",
+        paymentMethod: "wallet",
+        paidAt: new Date(Date.now() - 86400000) // 1 day ago
+      }
+    ];
+
+    demoInvoices.forEach(invoice => {
+      this.invoices.set(invoice.invoiceNumber, { ...invoice, id: parseInt(invoice.invoiceNumber.split('-')[1]), createdAt: new Date() });
+    });
+
+    // Create demo activities
+    const demoActivities = [
+      {
+        userId: 1,
+        type: "lot_won",
+        description: "Won lot #3456 - PEKOE grade",
+        metadata: { lotId: "LOT-3456", grade: "PEKOE" }
+      },
+      {
+        userId: 1,
+        type: "invoice_paid",
+        description: "Invoice #INV-8901 paid via wallet",
+        metadata: { invoiceNumber: "INV-8901", method: "wallet" }
+      },
+      {
+        userId: 1,
+        type: "bid_rejected",
+        description: "Bid rejected - lot #3421",
+        metadata: { lotId: "LOT-3421" }
+      },
+      {
+        userId: 1,
+        type: "fx_locked",
+        description: "FX rate locked at 130.45 KES/USD",
+        metadata: { rate: "130.45", amount: "25000" }
+      },
+      {
+        userId: 1,
+        type: "credit_increased",
+        description: "Credit limit increased to $500K",
+        metadata: { newLimit: "500000" }
+      }
+    ];
+
+    demoActivities.forEach(activity => {
+      const id = this.currentActivityId++;
+      this.activities.set(id, { ...activity, id, createdAt: new Date() });
+    });
+  }
+
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(user => user.username === username);
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const id = this.currentUserId++;
+    const user: User = { ...insertUser, id };
+    this.users.set(id, user);
+    return user;
+  }
+
+  // Lot methods
+  async getLots(): Promise<Lot[]> {
+    return Array.from(this.lots.values());
+  }
+
+  async getLot(lotId: string): Promise<Lot | undefined> {
+    return this.lots.get(lotId);
+  }
+
+  async createLot(insertLot: InsertLot): Promise<Lot> {
+    const id = parseInt(insertLot.lotId.split('-')[1]);
+    const lot: Lot = { ...insertLot, id, createdAt: new Date() };
+    this.lots.set(insertLot.lotId, lot);
+    return lot;
+  }
+
+  async updateLotStatus(lotId: string, status: string): Promise<void> {
+    const lot = this.lots.get(lotId);
+    if (lot) {
+      lot.status = status;
+      this.lots.set(lotId, lot);
+    }
+  }
+
+  // Bid methods
+  async getBidsForLot(lotId: string): Promise<Bid[]> {
+    return Array.from(this.bids.values()).filter(bid => bid.lotId === lotId);
+  }
+
+  async createBid(insertBid: InsertBid): Promise<Bid> {
+    const id = this.currentBidId++;
+    const bid: Bid = { ...insertBid, id, createdAt: new Date() };
+    this.bids.set(id, bid);
+    return bid;
+  }
+
+  async getWinningBid(lotId: string): Promise<Bid | undefined> {
+    return Array.from(this.bids.values())
+      .filter(bid => bid.lotId === lotId)
+      .sort((a, b) => parseFloat(b.bidAmount) - parseFloat(a.bidAmount))[0];
+  }
+
+  // Invoice methods
+  async getInvoicesForUser(userId: number): Promise<Invoice[]> {
+    return Array.from(this.invoices.values()).filter(invoice => invoice.buyerId === userId);
+  }
+
+  async createInvoice(insertInvoice: InsertInvoice): Promise<Invoice> {
+    const id = parseInt(insertInvoice.invoiceNumber.split('-')[1]);
+    const invoice: Invoice = { ...insertInvoice, id, createdAt: new Date() };
+    this.invoices.set(insertInvoice.invoiceNumber, invoice);
+    return invoice;
+  }
+
+  async updateInvoiceStatus(invoiceNumber: string, status: string, paymentMethod?: string): Promise<void> {
+    const invoice = this.invoices.get(invoiceNumber);
+    if (invoice) {
+      invoice.status = status;
+      if (paymentMethod) invoice.paymentMethod = paymentMethod;
+      if (status === "paid") invoice.paidAt = new Date();
+      this.invoices.set(invoiceNumber, invoice);
+    }
+  }
+
+  // Wallet methods
+  async getWalletsForUser(userId: number): Promise<Wallet[]> {
+    return Array.from(this.wallets.values()).filter(wallet => wallet.userId === userId);
+  }
+
+  async getWallet(userId: number, currency: string): Promise<Wallet | undefined> {
+    return this.wallets.get(`${userId}_${currency}`);
+  }
+
+  async updateWalletBalance(userId: number, currency: string, amount: string): Promise<void> {
+    const wallet = this.wallets.get(`${userId}_${currency}`);
+    if (wallet) {
+      wallet.balance = amount;
+      wallet.availableBalance = amount;
+      wallet.updatedAt = new Date();
+      this.wallets.set(`${userId}_${currency}`, wallet);
+    }
+  }
+
+  // Instant Cash Advance methods
+  async createInstantCashAdvance(insertAdvance: InsertInstantCashAdvance): Promise<InstantCashAdvance> {
+    const id = this.currentAdvanceId++;
+    const advance: InstantCashAdvance = { ...insertAdvance, id, createdAt: new Date() };
+    this.instantCashAdvances.set(id, advance);
+    return advance;
+  }
+
+  async getInstantCashAdvancesForUser(userId: number): Promise<InstantCashAdvance[]> {
+    return Array.from(this.instantCashAdvances.values()).filter(advance => advance.producerId === userId);
+  }
+
+  // FX Lock methods
+  async createFxLock(insertFxLock: InsertFxLock): Promise<FxLock> {
+    const id = this.currentFxLockId++;
+    const fxLock: FxLock = { ...insertFxLock, id, createdAt: new Date() };
+    this.fxLocks.set(id, fxLock);
+    return fxLock;
+  }
+
+  async getFxLocksForUser(userId: number): Promise<FxLock[]> {
+    return Array.from(this.fxLocks.values()).filter(lock => lock.userId === userId);
+  }
+
+  // Insurance Policy methods
+  async createInsurancePolicy(insertPolicy: InsertInsurancePolicy): Promise<InsurancePolicy> {
+    const id = parseInt(insertPolicy.policyNumber.split('-')[1]);
+    const policy: InsurancePolicy = { ...insertPolicy, id, createdAt: new Date() };
+    this.insurancePolicies.set(insertPolicy.policyNumber, policy);
+    return policy;
+  }
+
+  async getInsurancePoliciesForUser(userId: number): Promise<InsurancePolicy[]> {
+    return Array.from(this.insurancePolicies.values()).filter(policy => policy.userId === userId);
+  }
+
+  // Wire Transfer methods
+  async createWireTransfer(insertTransfer: InsertWireTransfer): Promise<WireTransfer> {
+    const id = this.currentTransferId++;
+    const transfer: WireTransfer = { ...insertTransfer, id, createdAt: new Date() };
+    this.wireTransfers.set(id, transfer);
+    return transfer;
+  }
+
+  async getWireTransfersForUser(userId: number): Promise<WireTransfer[]> {
+    return Array.from(this.wireTransfers.values()).filter(transfer => transfer.userId === userId);
+  }
+
+  async getWireTransferCounts(): Promise<{ inClearing: number; cleared: number; overdue: number }> {
+    const transfers = Array.from(this.wireTransfers.values());
+    return {
+      inClearing: transfers.filter(t => t.status === 'in_clearing').length || 5,
+      cleared: transfers.filter(t => t.status === 'cleared').length || 18,
+      overdue: transfers.filter(t => t.status === 'overdue').length || 2
+    };
+  }
+
+  // Activity methods
+  async createActivity(insertActivity: InsertActivity): Promise<Activity> {
+    const id = this.currentActivityId++;
+    const activity: Activity = { ...insertActivity, id, createdAt: new Date() };
+    this.activities.set(id, activity);
+    return activity;
+  }
+
+  async getActivitiesForUser(userId: number): Promise<Activity[]> {
+    return Array.from(this.activities.values())
+      .filter(activity => activity.userId === userId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+}
+
+export const storage = new MemStorage();
