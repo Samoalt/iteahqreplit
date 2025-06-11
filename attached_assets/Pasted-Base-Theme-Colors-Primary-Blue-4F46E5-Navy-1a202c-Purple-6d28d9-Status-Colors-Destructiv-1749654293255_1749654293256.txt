@@ -1,0 +1,111 @@
+Base Theme Colors:
+
+Primary: Blue (#4F46E5)
+Navy: #1a202c
+Purple: #6d28d9
+Status Colors:
+
+Destructive/Error: HSL(0, 84.2%, 60.2%)
+Success: (Found in feature cards - green gradient)
+Warning: (Found in feature cards - yellow gradient)
+Gradient Sets:
+
+Purple: from-purple-50 to purple-100
+Blue: from-blue-50 to blue-100
+Pink: from-pink-50 to pink-100
+Yellow: from-yellow-50 to yellow-100
+Green: from-green-50 to green-100
+Hero: Linear gradient from #1a202c to #2d3748
+Typography & Fonts
+
+Default font system with feature settings: "rlig" 1, "calt" 1
+Font Sizes:
+Section titles: text-2xl (mobile) to text-3xl (desktop)
+Badges: text-xs
+Regular text: Base size
+Card titles: text-sm to text-2xl
+Font Weights:
+Bold: font-bold
+Medium: font-medium
+Regular: default
+Card Styles
+
+Dashboard Cards:
+
+
+.card-dashboard {
+  background: white
+  border-radius: 0.75rem (var(--radius))
+  border: 1px solid rgb(243 244 246)
+  shadow: shadow-sm
+  padding: 1.5rem
+}
+Feature Cards:
+
+
+.feature-card {
+  padding: 1.5rem
+  border-radius: 1rem
+  shadow: shadow-sm
+  hover: shadow-md
+  transition: 300ms
+}
+Border Radius
+
+Default radius: 0.75rem
+Applied consistently to:
+Buttons
+Cards
+Inputs
+Dropdowns
+Avatars
+Sidebar items
+Shadows
+
+sm: Light shadow for cards
+md: Medium shadow for hover states
+Default shadow system from Tailwind
+Component-Specific Styles
+
+Badges:
+
+
+.badge-accent {
+  background: purple-100
+  text-color: purple-800
+  padding: 0.25rem 0.75rem
+  border-radius: 9999px
+  font-size: text-xs
+  font-weight: medium
+}
+Charts:
+
+
+.fintech-chart-gradient {
+  fill: gradient
+  stroke: #4F46E5
+  stroke-width: 2
+}
+Layout
+
+Grid System:
+
+
+.grid-feature-layout {
+  display: grid
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))
+  gap: 1.5rem
+}
+Dark Mode Support
+
+Complete dark mode theme with adjusted colors
+Background: HSL(222.2, 84%, 4.9%)
+Foreground: HSL(210, 40%, 98%)
+Preserved primary color
+Adjusted secondary and muted colors
+Animations
+
+Transitions: 300ms duration
+Timeline animations
+Hover effects on cards and interactive elements
+Smooth color transitions
