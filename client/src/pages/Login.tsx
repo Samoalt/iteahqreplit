@@ -76,130 +76,196 @@ export default function Login() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+    <div className="min-h-screen flex">
+      {/* Left Panel - Brand Section */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-600 to-emerald-800 p-12 flex-col justify-between text-white relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-20 left-20 w-32 h-32 border border-white/20 rounded-full"></div>
+          <div className="absolute top-40 right-32 w-24 h-24 border border-white/20 rounded-full"></div>
+          <div className="absolute bottom-32 left-32 w-40 h-40 border border-white/20 rounded-full"></div>
+        </div>
+        
+        {/* Content */}
+        <div className="relative z-10">
+          {/* Logo */}
+          <div className="flex items-center space-x-3 mb-16">
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
               <Leaf className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">iTea Flow</h1>
-              <p className="text-xs text-slate-600">powered by Elastic OS</p>
+              <h1 className="text-2xl font-bold">iTea Flow</h1>
+              <p className="text-emerald-100 text-sm">powered by Elastic OS</p>
             </div>
           </div>
-          <h2 className="text-xl font-semibold text-slate-900">Welcome Back</h2>
-          <p className="text-slate-600">Sign in to your tea trading account</p>
+
+          {/* Main Content */}
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-4xl font-bold mb-4">The Future of<br />Tea Trading</h2>
+              <p className="text-emerald-100 text-lg leading-relaxed">
+                Connect the entire tea ecosystem with transparent pricing, instant settlements, and seamless trade finance.
+              </p>
+            </div>
+
+            {/* Features */}
+            <div className="space-y-6">
+              <div className="flex items-start space-x-4">
+                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                  <Lock className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1">Bank-grade Security</h3>
+                  <p className="text-emerald-100 text-sm">256-bit encryption & multi-factor authentication</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-4">
+                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1">Instant Settlements</h3>
+                  <p className="text-emerald-100 text-sm">Real-time payments via Elastic OS infrastructure</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-4">
+                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1">Market Analytics</h3>
+                  <p className="text-emerald-100 text-sm">AI-powered insights and predictive pricing</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-center">Sign In</CardTitle>
-          </CardHeader>
-          
-          <CardContent className="space-y-6">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+        {/* Bottom Badge */}
+        <div className="relative z-10 flex items-center space-x-2 text-emerald-100">
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="text-sm">Trusted by 500+ producers and buyers across Kenya</span>
+        </div>
+      </div>
+
+      {/* Right Panel - Login Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gradient-to-br from-slate-50 to-blue-50 relative">
+        {/* Background decoration */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-yellow-200 to-orange-200 rounded-full opacity-20 blur-3xl"></div>
+        
+        <div className="w-full max-w-md relative z-10">
+          <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+            <CardHeader className="text-center pb-2">
+              <CardTitle className="text-2xl font-bold text-slate-900 mb-2">Welcome back</CardTitle>
+              <p className="text-slate-600">Sign in to your account to continue</p>
+            </CardHeader>
+            
+            <CardContent className="space-y-6 pt-6">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-slate-700 font-medium">Email Address</Label>
                   <Input
                     id="email"
                     type="email"
-                    placeholder="your@email.com"
-                    className={`pl-10 ${errors.email ? "border-red-500" : ""}`}
+                    placeholder="Enter your email"
+                    className={`h-12 border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 ${errors.email ? "border-red-500" : ""}`}
                     {...register("email")}
                   />
+                  {errors.email && (
+                    <p className="text-sm text-red-600">{errors.email.message}</p>
+                  )}
                 </div>
-                {errors.email && (
-                  <p className="text-sm text-red-600">{errors.email.message}</p>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    className={`pl-10 pr-10 ${errors.password ? "border-red-500" : ""}`}
-                    {...register("password")}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-slate-700 font-medium">Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      className={`h-12 pr-12 border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 ${errors.password ? "border-red-500" : ""}`}
+                      {...register("password")}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <p className="text-sm text-red-600">{errors.password.message}</p>
+                  )}
                 </div>
-                {errors.password && (
-                  <p className="text-sm text-red-600">{errors.password.message}</p>
-                )}
-              </div>
+                
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Signing in..." : "Sign In"}
+                </Button>
+              </form>
               
-              <div className="flex items-center justify-between">
-                <div className="text-sm">
-                  <Link href="/forgot-password">
-                    <span className="text-blue-600 hover:underline cursor-pointer">
-                      Forgot password?
-                    </span>
-                  </Link>
-                </div>
-              </div>
-              
-              <Button 
-                type="submit" 
-                className="w-full bg-primary hover:bg-primary/90"
-                disabled={isLoading}
-              >
-                {isLoading ? "Signing in..." : "Sign In"}
-              </Button>
-            </form>
-            
-            <div className="text-center">
-              <p className="text-sm text-slate-600">
-                Don't have an account?{" "}
+              <div className="text-center space-y-4">
+                <p className="text-sm text-slate-600">
+                  NEW TO ITEA FLOW?
+                </p>
                 <Link href="/register">
-                  <span className="text-blue-600 hover:underline cursor-pointer">
-                    Sign up
+                  <Button variant="outline" className="w-full h-12 border-emerald-600 text-emerald-600 hover:bg-emerald-50">
+                    Create your account
+                  </Button>
+                </Link>
+                <Link href="/forgot-password">
+                  <span className="text-sm text-emerald-600 hover:underline cursor-pointer">
+                    Forgot your password?
                   </span>
                 </Link>
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-        {/* Demo Accounts */}
-        <Card className="mt-6 border-blue-200 bg-blue-50">
-          <CardContent className="pt-6">
-            <h3 className="font-semibold text-blue-900 mb-3 text-center">Demo Accounts</h3>
-            <div className="space-y-2 text-sm">
-              {demoAccounts.map((account, index) => (
-                <div key={index} className="flex justify-between items-center p-2 bg-white rounded border">
-                  <div>
-                    <div className="font-medium text-slate-900">{account.name}</div>
-                    <div className="text-slate-600">{account.role}</div>
+          {/* Demo Accounts - Mobile Friendly */}
+          <Card className="mt-6 border-emerald-200 bg-emerald-50/50 backdrop-blur-sm">
+            <CardContent className="pt-6">
+              <h3 className="font-semibold text-emerald-800 mb-3 text-center">Demo Accounts</h3>
+              <div className="grid grid-cols-1 gap-2 text-sm">
+                {demoAccounts.map((account, index) => (
+                  <div key={index} className="flex justify-between items-center p-3 bg-white/80 rounded-lg border border-emerald-100">
+                    <div>
+                      <div className="font-medium text-slate-900">{account.name}</div>
+                      <div className="text-slate-600 text-xs">{account.role}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-slate-700 font-mono text-xs">{account.email}</div>
+                      <div className="text-slate-500 font-mono text-xs">{account.password}</div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-slate-700 font-mono text-xs">{account.email}</div>
-                    <div className="text-slate-500 font-mono text-xs">{account.password}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p className="text-xs text-blue-700 mt-3 text-center">
-              Click any credential above to copy, or type them manually
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Security Badge */}
+          <div className="mt-6 text-center">
+            <p className="text-xs text-slate-500">
+              Secured by Elastic OS • Enterprise-grade encryption
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
