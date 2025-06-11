@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, TrendingUp, Gavel, PieChart, FileText, CreditCard, ArrowUp, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import RoleSwitcher from "@/components/RoleSwitcher";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -197,6 +198,9 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Role Switcher for Demo */}
+      <RoleSwitcher />
+
       {/* Role-specific Page Header */}
       <div className="flex items-center justify-between">
         <div>
