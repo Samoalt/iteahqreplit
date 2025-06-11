@@ -64,7 +64,7 @@ export default function Admin() {
   const [userModalOpen, setUserModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Restrict access to admin users only
+  // Restrict access to admin users only - moved after all hooks
   if (!user || user.role !== "ops_admin") {
     return (
       <div className="min-h-screen flex items-center justify-center">
