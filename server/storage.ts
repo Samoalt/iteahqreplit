@@ -397,6 +397,12 @@ export class MemStorage implements IStorage {
   private insurancePolicies: Map<string, InsurancePolicy> = new Map();
   private wireTransfers: Map<number, WireTransfer> = new Map();
   private activities: Map<number, Activity> = new Map();
+  private notifications: Map<number, Notification> = new Map();
+  private lenderPools: Map<number, LenderPool> = new Map();
+  private esgMetrics: Map<number, EsgMetric> = new Map();
+  private factoryFlags: Map<number, FactoryFlag> = new Map();
+  private paymentMethods: Map<number, PaymentMethod> = new Map();
+  private otpSessions: Map<string, OtpSession> = new Map();
   
   private currentUserId = 1;
   private currentBidId = 1;
@@ -404,6 +410,11 @@ export class MemStorage implements IStorage {
   private currentFxLockId = 1;
   private currentTransferId = 1;
   private currentActivityId = 1;
+  private currentNotificationId = 1;
+  private currentLenderPoolId = 1;
+  private currentEsgMetricId = 1;
+  private currentFactoryFlagId = 1;
+  private currentPaymentMethodId = 1;
 
   constructor() {
     this.initializeData();
@@ -600,6 +611,63 @@ export class MemStorage implements IStorage {
       const id = this.currentActivityId++;
       this.activities.set(id, { ...activity, id, createdAt: new Date(), metadata: activity.metadata || {} });
     });
+
+    // Initialize sample notifications
+    const sampleNotifications: Notification[] = [
+      {
+        id: 1,
+        userId: 1,
+        type: "payment",
+        title: "Payment Received",
+        message: "Payment of KES 145,000 received for Lot TEA-2024-156",
+        priority: "high",
+        read: false,
+        actionUrl: "/lots-invoices",
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+        metadata: { lotId: "TEA-2024-156", amount: "145000" }
+      },
+      {
+        id: 2,
+        userId: 1,
+        type: "auction",
+        title: "Bid Outbid",
+        message: "Your bid on Lot TEA-2024-189 has been outbid. Current highest: KES 95,000",
+        priority: "medium",
+        read: false,
+        actionUrl: "/dashboard",
+        createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
+        metadata: { lotId: "TEA-2024-189", currentBid: "95000" }
+      },
+      {
+        id: 3,
+        userId: 1,
+        type: "credit",
+        title: "Credit Limit Increased",
+        message: "Your credit limit has been increased to KES 2,500,000",
+        priority: "medium",
+        read: true,
+        actionUrl: "/fx-credit",
+        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+        metadata: { newLimit: "2500000" }
+      },
+      {
+        id: 4,
+        userId: 1,
+        type: "esg",
+        title: "ESG Report Available",
+        message: "Monthly ESG compliance report is now available for download",
+        priority: "low",
+        read: false,
+        actionUrl: "/board-view",
+        createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
+        metadata: { reportType: "monthly", month: "December" }
+      }
+    ];
+
+    for (const notification of sampleNotifications) {
+      this.notifications.set(notification.id, notification);
+    }
+    this.currentNotificationId = 5;
   }
 
   // User methods
@@ -820,11 +888,11 @@ export class MemStorage implements IStorage {
 
   // Notification methods (stub implementations for MemStorage)
   async getNotificationsForUser(userId: number): Promise<Notification[]> {
-    return [];
+    return Array.from(this.notifications.values()).filter(n => n.userId === userId);
   }
 
   async createNotification(notification: InsertNotification): Promise<Notification> {
-    const id = 1;
+    const id = this.currentNotificationId++;
     const created: Notification = { 
       ...notification, 
       id, 
@@ -834,15 +902,25 @@ export class MemStorage implements IStorage {
       read: notification.read || false,
       actionUrl: notification.actionUrl || null
     };
+    this.notifications.set(id, created);
     return created;
   }
 
   async markNotificationAsRead(notificationId: number): Promise<void> {
-    // Stub implementation
+    const notification = this.notifications.get(notificationId);
+    if (notification) {
+      notification.read = true;
+      this.notifications.set(notificationId, notification);
+    }
   }
 
   async markAllNotificationsAsRead(userId: number): Promise<void> {
-    // Stub implementation
+    for (const [id, notification] of this.notifications.entries()) {
+      if (notification.userId === userId) {
+        notification.read = true;
+        this.notifications.set(id, notification);
+      }
+    }
   }
 
   // Lender Pool methods (stub implementations)
