@@ -251,56 +251,178 @@ export default function Dashboard() {
         })}
       </div>
 
-      {/* Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Lots Heat Map */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Lots by Grade</CardTitle>
-            <Button variant="ghost" size="sm" className="text-accent hover:text-accent/80">
-              View All
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-5 gap-3">
-              {gradeData?.map((grade: any, index: number) => (
-                <div
-                  key={index}
-                  className="bg-slate-50 rounded-lg p-4 text-center hover:bg-slate-100 transition-colors cursor-pointer"
-                >
-                  <div className="text-lg font-bold text-slate-900">{grade.count}</div>
-                  <div className="text-sm text-slate-600">{grade.name}</div>
-                  <div className="w-full bg-slate-200 rounded-full h-1 mt-2">
-                    <div 
-                      className="bg-primary h-1 rounded-full transition-all duration-300" 
-                      style={{ width: `${grade.percentage}%` }}
-                    ></div>
+      {/* Role-specific Content Grid */}
+      {user.role === "producer" && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Factory Production Status */}
+          <Card className="lg:col-span-2">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Factory Production Status</CardTitle>
+              <Button variant="ghost" size="sm" className="text-accent hover:text-accent/80">
+                View All Factories
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4">
+                {[
+                  { factory: "KANGAITA-001", status: "Active", production: "2,850 kg", grade: "PEKOE" },
+                  { factory: "KANGAITA-002", status: "Maintenance", production: "0 kg", grade: "N/A" },
+                  { factory: "KANGAITA-003", status: "Active", production: "3,200 kg", grade: "BOPF" },
+                  { factory: "MERU-001", status: "Active", production: "1,950 kg", grade: "BROKEN" },
+                  { factory: "MERU-002", status: "Quality Check", production: "750 kg", grade: "FANNINGS" },
+                  { factory: "NYERI-001", status: "Active", production: "4,100 kg", grade: "PEKOE" }
+                ].map((factory, index) => (
+                  <div key={index} className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
+                    <div className="font-medium text-slate-900">{factory.factory}</div>
+                    <div className={`text-xs px-2 py-1 rounded-full inline-block mt-1 ${
+                      factory.status === "Active" ? "bg-green-100 text-green-700" :
+                      factory.status === "Maintenance" ? "bg-red-100 text-red-700" :
+                      "bg-amber-100 text-amber-700"
+                    }`}>{factory.status}</div>
+                    <div className="text-sm text-slate-600 mt-2">{factory.production}</div>
+                    <div className="text-xs text-slate-500">{factory.grade}</div>
                   </div>
-                </div>
-              )) || [
-                { name: "PEKOE", count: 45, percentage: 75 },
-                { name: "BOPF", count: 32, percentage: 53 },
-                { name: "BROKEN", count: 28, percentage: 47 },
-                { name: "FANNINGS", count: 19, percentage: 32 },
-                { name: "DUST", count: 12, percentage: 20 }
-              ].map((grade, index) => (
-                <div
-                  key={index}
-                  className="bg-slate-50 rounded-lg p-4 text-center hover:bg-slate-100 transition-colors cursor-pointer"
-                >
-                  <div className="text-lg font-bold text-slate-900">{grade.count}</div>
-                  <div className="text-sm text-slate-600">{grade.name}</div>
-                  <div className="w-full bg-slate-200 rounded-full h-1 mt-2">
-                    <div 
-                      className="bg-primary h-1 rounded-full transition-all duration-300" 
-                      style={{ width: `${grade.percentage}%` }}
-                    ></div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {user.role === "buyer" && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Live Auction Bidding */}
+          <Card className="lg:col-span-2">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Live Auction Lots</CardTitle>
+              <Button variant="ghost" size="sm" className="text-accent hover:text-accent/80">
+                Join Auction
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[
+                  { lot: "LOT-3456", grade: "PEKOE", qty: "2,500 kg", current: "$185", reserve: "$180", status: "LIVE" },
+                  { lot: "LOT-3457", grade: "BOPF", qty: "1,800 kg", current: "$165", reserve: "$160", status: "BIDDING" },
+                  { lot: "LOT-3458", grade: "BROKEN", qty: "3,200 kg", current: "$145", reserve: "$140", status: "PENDING" }
+                ].map((lot, index) => (
+                  <div key={index} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                    <div className="flex items-center space-x-4">
+                      <div className={`w-3 h-3 rounded-full ${
+                        lot.status === "LIVE" ? "bg-red-500 animate-pulse" :
+                        lot.status === "BIDDING" ? "bg-green-500" : "bg-amber-500"
+                      }`}></div>
+                      <div>
+                        <div className="font-medium text-slate-900">{lot.lot}</div>
+                        <div className="text-sm text-slate-600">{lot.grade} • {lot.qty}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-medium text-slate-900">{lot.current}</div>
+                      <div className="text-xs text-slate-500">Reserve: {lot.reserve}</div>
+                    </div>
+                    <Button size="sm" variant={lot.status === "LIVE" ? "default" : "outline"}>
+                      {lot.status === "LIVE" ? "Bid Now" : "Watch"}
+                    </Button>
                   </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {user.role === "ktda_ro" && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Network Performance Overview */}
+          <Card className="lg:col-span-2">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Factory Network Performance</CardTitle>
+              <Button variant="ghost" size="sm" className="text-accent hover:text-accent/80">
+                View Full Report
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-4 gap-4">
+                {[
+                  { region: "Central", factories: 24, active: 22, volume: "$2.1M", efficiency: "94%" },
+                  { region: "Eastern", factories: 18, active: 17, volume: "$1.8M", efficiency: "92%" },
+                  { region: "Rift Valley", factories: 31, active: 28, volume: "$3.2M", efficiency: "89%" },
+                  { region: "Western", factories: 16, active: 15, volume: "$1.5M", efficiency: "96%" }
+                ].map((region, index) => (
+                  <div key={index} className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
+                    <div className="font-medium text-slate-900">{region.region}</div>
+                    <div className="text-sm text-slate-600 mt-1">{region.active}/{region.factories} Active</div>
+                    <div className="text-lg font-bold text-primary mt-2">{region.volume}</div>
+                    <div className="text-xs text-slate-500">Efficiency: {region.efficiency}</div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {user.role === "ops_admin" && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* System Administration Panel */}
+          <Card className="lg:col-span-2">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Platform Health & Operations</CardTitle>
+              <Button variant="ghost" size="sm" className="text-accent hover:text-accent/80">
+                System Logs
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h4 className="font-medium text-slate-900">System Status</h4>
+                  {[
+                    { service: "Auction Engine", status: "Online", uptime: "99.9%" },
+                    { service: "Payment Gateway", status: "Online", uptime: "99.7%" },
+                    { service: "User Management", status: "Maintenance", uptime: "98.2%" },
+                    { service: "Notification Service", status: "Online", uptime: "99.8%" }
+                  ].map((service, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                      <div>
+                        <div className="font-medium text-slate-900">{service.service}</div>
+                        <div className="text-xs text-slate-500">Uptime: {service.uptime}</div>
+                      </div>
+                      <div className={`w-3 h-3 rounded-full ${
+                        service.status === "Online" ? "bg-green-500" : "bg-amber-500"
+                      }`}></div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <div className="space-y-4">
+                  <h4 className="font-medium text-slate-900">Support Queue</h4>
+                  {[
+                    { ticket: "#2043", issue: "Payment timeout", priority: "High", user: "Factory-045" },
+                    { ticket: "#2042", issue: "Login issues", priority: "Medium", user: "Buyer-112" },
+                    { ticket: "#2041", issue: "Report generation", priority: "Low", user: "Producer-089" }
+                  ].map((ticket, index) => (
+                    <div key={index} className="p-3 bg-slate-50 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="font-medium text-slate-900">{ticket.ticket}</div>
+                        <div className={`text-xs px-2 py-1 rounded-full ${
+                          ticket.priority === "High" ? "bg-red-100 text-red-700" :
+                          ticket.priority === "Medium" ? "bg-amber-100 text-amber-700" :
+                          "bg-green-100 text-green-700"
+                        }`}>{ticket.priority}</div>
+                      </div>
+                      <div className="text-sm text-slate-600 mt-1">{ticket.issue}</div>
+                      <div className="text-xs text-slate-500">{ticket.user}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Common Content for All Roles */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
 
         {/* Recent Activity */}
         <Card>

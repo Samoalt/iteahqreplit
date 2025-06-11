@@ -39,10 +39,23 @@ export function useAuth() {
 
   const switchRole = (newRole: string) => {
     if (user) {
-      setUser({
+      const updatedUser = {
         ...user,
-        role: newRole as "producer" | "buyer" | "ktda_ro" | "ops_admin"
-      });
+        role: newRole as "producer" | "buyer" | "ktda_ro" | "ops_admin",
+        firstName: newRole === "producer" ? "Michael" : 
+                  newRole === "buyer" ? "Sarah" :
+                  newRole === "ktda_ro" ? "David" : "Admin",
+        lastName: newRole === "producer" ? "Wambugu" : 
+                 newRole === "buyer" ? "Chen" :
+                 newRole === "ktda_ro" ? "Kimani" : "User",
+        username: newRole === "producer" ? "michael.wambugu" : 
+                 newRole === "buyer" ? "sarah.chen" :
+                 newRole === "ktda_ro" ? "david.kimani" : "admin.user"
+      };
+      setUser(updatedUser);
+      
+      // Force page reload to refresh all components with new role
+      window.location.href = '/dashboard';
     }
   };
 
