@@ -208,6 +208,20 @@ export const otpSessions = pgTable("otp_sessions", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const autoListingRules = pgTable("auto_listing_rules", {
+  id: text("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  factoryId: text("factory_id").notNull(),
+  enabled: boolean("enabled").notNull().default(true),
+  grade: text("grade").notNull(),
+  minQuantity: integer("min_quantity").notNull(),
+  reservePrice: decimal("reserve_price", { precision: 10, scale: 2 }).notNull(),
+  listingSchedule: text("listing_schedule").notNull(), // immediate, daily, weekly
+  qualityThreshold: integer("quality_threshold").notNull(),
+  autoApprove: boolean("auto_approve").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertLotSchema = createInsertSchema(lots).omit({ id: true, createdAt: true });

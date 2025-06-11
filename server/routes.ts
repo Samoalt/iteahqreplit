@@ -501,5 +501,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Auto-listing endpoints
+  app.get("/api/auto-listing/rules", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+
+    try {
+      const rules = await storage.getAutoListingRulesForUser(req.user.id);
+      res.json(rules);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching auto-listing rules: " + error.message });
+    }
+  });
+
+  app.post("/api/auto-listing/rules", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+
+    try {
+      const rule = await storage.createAutoListingRule({
+        ...req.body,
+        userId: req.user.id,
+        createdAt: new Date()
+      });
+      res.json(rule);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error creating auto-listing rule: " + error.message });
+    }
+  });
+
+  app.patch("/api/auto-listing/rules/:id", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+
+    try {
+      await storage.updateAutoListingRule(req.params.id, req.body);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error updating auto-listing rule: " + error.message });
+    }
+  });
+
   return httpServer;
 }

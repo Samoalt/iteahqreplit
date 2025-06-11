@@ -89,6 +89,11 @@ export interface IStorage {
   // OTP Sessions
   createOtpSession(session: InsertOtpSession): Promise<OtpSession>;
   verifyOtpSession(sessionId: string, otpCode: string): Promise<boolean>;
+
+  // Auto-Listing Rules
+  getAutoListingRulesForUser(userId: number): Promise<AutoListingRule[]>;
+  createAutoListingRule(rule: InsertAutoListingRule): Promise<AutoListingRule>;
+  updateAutoListingRule(ruleId: string, updates: Partial<AutoListingRule>): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {

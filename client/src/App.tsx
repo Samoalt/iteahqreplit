@@ -18,6 +18,7 @@ import InstantCash from "@/pages/InstantCash";
 import StatementsAndReports from "@/pages/StatementsAndReports";
 import Alerts from "@/pages/Alerts";
 import Admin from "@/pages/Admin";
+import AutoListing from "@/pages/AutoListing";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -57,6 +58,7 @@ function Router() {
         <Route path="/reports" component={StatementsAndReports} />
         <Route path="/alerts" component={Alerts} />
         <Route path="/admin" component={Admin} />
+        <Route path="/auto-listing" component={AutoListing} />
         <Route component={NotFound} />
       </Switch>
     </AppShell>
