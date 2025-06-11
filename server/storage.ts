@@ -923,13 +923,13 @@ export class MemStorage implements IStorage {
     }
   }
 
-  // Lender Pool methods (stub implementations)
+  // Lender Pool methods
   async getLenderPools(): Promise<LenderPool[]> {
-    return [];
+    return Array.from(this.lenderPools.values());
   }
 
   async createLenderPool(pool: InsertLenderPool): Promise<LenderPool> {
-    const id = 1;
+    const id = this.currentLenderPoolId++;
     const created: LenderPool = { 
       ...pool, 
       id, 
@@ -938,36 +938,38 @@ export class MemStorage implements IStorage {
       description: pool.description || null,
       riskTier: pool.riskTier || "medium"
     };
+    this.lenderPools.set(id, created);
     return created;
   }
 
-  // ESG Metrics methods (stub implementations)
+  // ESG Metrics methods
   async getEsgMetrics(): Promise<EsgMetric[]> {
-    return [];
+    return Array.from(this.esgMetrics.values());
   }
 
   async getEsgMetricsByFactory(factoryId: string): Promise<EsgMetric[]> {
-    return [];
+    return Array.from(this.esgMetrics.values()).filter(metric => metric.factoryId === factoryId);
   }
 
   async createEsgMetric(metric: InsertEsgMetric): Promise<EsgMetric> {
-    const id = 1;
+    const id = this.currentEsgMetricId++;
     const created: EsgMetric = { 
       ...metric, 
       id, 
       createdAt: new Date(),
       certifications: metric.certifications || null
     };
+    this.esgMetrics.set(id, created);
     return created;
   }
 
-  // Factory Flag methods (stub implementations)
+  // Factory Flag methods
   async getFactoryFlags(): Promise<FactoryFlag[]> {
-    return [];
+    return Array.from(this.factoryFlags.values());
   }
 
   async createFactoryFlag(flag: InsertFactoryFlag): Promise<FactoryFlag> {
-    const id = 1;
+    const id = this.currentFactoryFlagId++;
     const created: FactoryFlag = { 
       ...flag, 
       id, 
@@ -977,11 +979,19 @@ export class MemStorage implements IStorage {
       assignedTo: flag.assignedTo || null,
       resolvedAt: flag.resolvedAt || null
     };
+    this.factoryFlags.set(id, created);
     return created;
   }
 
   async updateFactoryFlagStatus(flagId: number, status: string): Promise<void> {
-    // Stub implementation
+    const flag = this.factoryFlags.get(flagId);
+    if (flag) {
+      flag.status = status;
+      if (status === "resolved") {
+        flag.resolvedAt = new Date();
+      }
+      this.factoryFlags.set(flagId, flag);
+    }
   }
 
   // Payment Method methods (stub implementations)
