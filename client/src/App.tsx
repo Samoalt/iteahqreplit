@@ -44,21 +44,78 @@ function Router() {
     );
   }
 
+  // Role-based route filtering
+  const getRoleBasedRoutes = () => {
+    const baseRoutes = [
+      { path: "/", component: Dashboard },
+      { path: "/dashboard", component: Dashboard },
+    ];
+
+    switch (user.role) {
+      case "buyer":
+        return [
+          ...baseRoutes,
+          { path: "/lots", component: LotsAndInvoices },
+          { path: "/wallets", component: WalletsAndSettlement },
+          { path: "/fx-credit", component: FXAndCredit },
+          { path: "/insurance", component: InsuranceHub },
+          { path: "/instant-cash", component: InstantCash },
+          { path: "/reports", component: StatementsAndReports },
+          { path: "/alerts", component: Alerts },
+        ];
+      
+      case "producer":
+        return [
+          ...baseRoutes,
+          { path: "/lots", component: LotsAndInvoices },
+          { path: "/wallets", component: WalletsAndSettlement },
+          { path: "/fx-credit", component: FXAndCredit },
+          { path: "/insurance", component: InsuranceHub },
+          { path: "/auto-listing", component: AutoListing },
+          { path: "/reports", component: StatementsAndReports },
+          { path: "/alerts", component: Alerts },
+        ];
+      
+      case "ktda_ro":
+        return [
+          ...baseRoutes,
+          { path: "/board", component: BoardView },
+          { path: "/reports", component: StatementsAndReports },
+          { path: "/alerts", component: Alerts },
+        ];
+      
+      case "ops_admin":
+        return [
+          ...baseRoutes,
+          { path: "/lots", component: LotsAndInvoices },
+          { path: "/wallets", component: WalletsAndSettlement },
+          { path: "/fx-credit", component: FXAndCredit },
+          { path: "/insurance", component: InsuranceHub },
+          { path: "/board", component: BoardView },
+          { path: "/instant-cash", component: InstantCash },
+          { path: "/reports", component: StatementsAndReports },
+          { path: "/alerts", component: Alerts },
+          { path: "/admin", component: Admin },
+          { path: "/auto-listing", component: AutoListing },
+        ];
+      
+      default:
+        return baseRoutes;
+    }
+  };
+
+  const allowedRoutes = getRoleBasedRoutes();
+
   return (
     <AppShell>
       <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/dashboard" component={Dashboard} />
-        <Route path="/lots" component={LotsAndInvoices} />
-        <Route path="/wallets" component={WalletsAndSettlement} />
-        <Route path="/fx-credit" component={FXAndCredit} />
-        <Route path="/insurance" component={InsuranceHub} />
-        <Route path="/board" component={BoardView} />
-        <Route path="/instant-cash" component={InstantCash} />
-        <Route path="/reports" component={StatementsAndReports} />
-        <Route path="/alerts" component={Alerts} />
-        <Route path="/admin" component={Admin} />
-        <Route path="/auto-listing" component={AutoListing} />
+        {allowedRoutes.map((route, index) => (
+          <Route 
+            key={index}
+            path={route.path} 
+            component={route.component} 
+          />
+        ))}
         <Route component={NotFound} />
       </Switch>
     </AppShell>

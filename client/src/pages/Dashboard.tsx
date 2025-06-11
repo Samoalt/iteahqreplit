@@ -157,13 +157,56 @@ export default function Dashboard() {
 
   const kpiCards = getKpiCards();
 
+  // Role-specific welcome messages and content
+  const getRoleContent = () => {
+    switch (user.role) {
+      case "producer":
+        return {
+          title: "Producer Dashboard",
+          subtitle: "Manage your tea production and automated listing",
+          highlight: "Auto-Listing enabled for 2 factories • Next auction in 4h 23m"
+        };
+      case "buyer":
+        return {
+          title: "Buyer Dashboard", 
+          subtitle: "Monitor live auctions and manage purchases",
+          highlight: "5 live auctions • 3 lots requiring payment"
+        };
+      case "ktda_ro":
+        return {
+          title: "KTDA Board View",
+          subtitle: "Strategic oversight and network performance",
+          highlight: "89 factories operational • ESG score: A-"
+        };
+      case "ops_admin":
+        return {
+          title: "Operations Admin",
+          subtitle: "Platform administration and system monitoring", 
+          highlight: "99.8% uptime • 12 pending support tickets"
+        };
+      default:
+        return {
+          title: "Dashboard",
+          subtitle: "Overview of tea trading activity",
+          highlight: ""
+        };
+    }
+  };
+
+  const roleContent = getRoleContent();
+
   return (
     <div className="space-y-6">
-      {/* Page Header */}
+      {/* Role-specific Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="section-title text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Overview of your tea trading activity</p>
+          <h1 className="section-title text-foreground">{roleContent.title}</h1>
+          <p className="text-muted-foreground">{roleContent.subtitle}</p>
+          {roleContent.highlight && (
+            <div className="mt-2 text-sm text-primary font-medium bg-primary/10 px-3 py-1 rounded-full inline-block">
+              {roleContent.highlight}
+            </div>
+          )}
         </div>
         <div className="flex items-center space-x-3">
           <Button onClick={handleRefresh} className="bg-primary hover:bg-primary/90">

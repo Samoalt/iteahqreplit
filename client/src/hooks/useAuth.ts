@@ -37,11 +37,21 @@ export function useAuth() {
     setUser(null);
   };
 
+  const switchRole = (newRole: string) => {
+    if (user) {
+      setUser({
+        ...user,
+        role: newRole as "producer" | "buyer" | "ktda_ro" | "ops_admin"
+      });
+    }
+  };
+
   return {
     user,
     isLoading,
     login,
     logout,
-    checkAuth
+    checkAuth,
+    switchRole
   };
 }
