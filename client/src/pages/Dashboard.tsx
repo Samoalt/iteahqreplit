@@ -52,104 +52,102 @@ export default function Dashboard() {
           color: "text-primary"
         },
         {
-          label: "Active Advances",
-          value: kpis?.activeAdvances?.value || 3,
-          change: kpis?.activeAdvances?.change || "$45,200 outstanding",
+          label: "Instant Cash Available",
+          value: "$89,500",
+          change: "Ready for advance",
           icon: CreditCard,
-          color: "text-accent"
+          color: "text-status-green"
         }
       ];
     } else if (user.role === "buyer") {
       return [
         {
-          label: "Lots Won & Unpaid",
-          value: kpis?.lotsWonUnpaid?.value || 5,
-          change: kpis?.lotsWonUnpaid?.change || "2 due today",
-          icon: FileText,
-          color: "text-status-red",
-          description: "Lots requiring payment settlement"
+          label: "Won Lots Pending",
+          value: 3,
+          change: "$74,250 awaiting payment",
+          icon: Gavel,
+          color: "text-status-amber"
         },
         {
           label: "Active Bids",
-          value: kpis?.activeBids?.value || 24,
-          change: kpis?.activeBids?.change || "+12.5%",
-          icon: Gavel,
+          value: 7,
+          change: "On 5 live auctions",
+          icon: TrendingUp,
           color: "text-accent"
         },
         {
-          label: "Portfolio Value",
-          value: kpis?.portfolioValue?.value || "$847,230",
-          change: kpis?.portfolioValue?.change || "+8.2%",
+          label: "Buying Power",
+          value: "$895,000",
+          change: "Available credit",
           icon: PieChart,
-          color: "text-primary"
+          color: "text-status-green"
         },
         {
-          label: "FX Exposure",
-          value: kpis?.fxExposure?.value || "$120,450",
-          change: kpis?.fxExposure?.change || "85% hedged",
-          icon: TrendingUp,
-          color: "text-status-green"
+          label: "FX Position",
+          value: "$234,500",
+          change: "78% hedged KES",
+          icon: RefreshCw,
+          color: "text-purple-600"
         }
       ];
     } else if (user.role === "ktda_ro") {
       return [
         {
-          label: "Factories with Payout >24h",
-          value: kpis?.factoriesDelayed?.value || 2,
-          change: kpis?.factoriesDelayed?.change || "Target: <2%",
+          label: "Processing Delays",
+          value: 2,
+          change: "Factories requiring attention",
           icon: Clock,
-          color: "text-status-red",
-          description: "Factories exceeding payout target"
+          color: "text-status-destructive"
         },
         {
-          label: "Total GMV",
-          value: kpis?.totalGMV?.value || "$2.4M",
-          change: kpis?.totalGMV?.change || "+15.3% vs last month",
-          icon: PieChart,
-          color: "text-primary"
-        },
-        {
-          label: "Active Factories",
-          value: kpis?.activeFactories?.value || 47,
-          change: kpis?.activeFactories?.change || "3 new this month",
-          icon: Gavel,
+          label: "Monthly Volume",
+          value: "$12.4M",
+          change: "+18.7% vs last month",
+          icon: TrendingUp,
           color: "text-status-green"
         },
         {
-          label: "ESG Compliance",
-          value: kpis?.esgCompliance?.value || "94%",
-          change: kpis?.esgCompliance?.change || "+2% improvement",
-          icon: TrendingUp,
+          label: "Factory Network",
+          value: 89,
+          change: "87 active, 2 maintenance",
+          icon: PieChart,
+          color: "text-accent"
+        },
+        {
+          label: "ESG Score",
+          value: "A-",
+          change: "Target: A+ by Q2",
+          icon: FileText,
           color: "text-status-green"
         }
       ];
     } else {
       return [
         {
-          label: "System Health",
-          value: kpis?.systemHealth?.value || "99.8%",
-          change: kpis?.systemHealth?.change || "Excellent",
-          icon: TrendingUp,
+          label: "Platform Health",
+          value: "99.8%",
+          change: "Uptime this month",
+          icon: RefreshCw,
           color: "text-status-green"
         },
         {
-          label: "Active Users",
-          value: kpis?.activeUsers?.value || 189,
-          change: kpis?.activeUsers?.change || "+12 today",
-          icon: Gavel,
+          label: "Daily Users",
+          value: 1243,
+          change: "+8.3% growth rate",
+          icon: TrendingUp,
           color: "text-accent"
         },
         {
-          label: "Transaction Volume",
-          value: kpis?.transactionVolume?.value || "$847,230",
-          change: kpis?.transactionVolume?.change || "+8.2%",
-          icon: PieChart,
+          label: "Settlement Volume",
+          value: "$3.8M",
+          change: "Processed today",
+          icon: CreditCard,
           color: "text-primary"
         },
         {
-          label: "Support Tickets",
-          value: kpis?.supportTickets?.value || 3,
-          change: kpis?.supportTickets?.change || "2 pending",
+          label: "Open Issues",
+          value: 12,
+          change: "4 critical, 8 medium",
           icon: FileText,
           color: "text-status-amber"
         }
