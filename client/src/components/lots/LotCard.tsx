@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Star, Leaf, Gavel, Zap } from "lucide-react";
 import { Lot } from "@shared/schema";
+import WatchlistButton from "./WatchlistButton";
 
 interface LotCardProps {
   lot: Lot;
@@ -55,16 +56,21 @@ export default function LotCard({ lot, onBid, onInstantCash, userRole }: LotCard
   return (
     <Card className="w-80 hover:shadow-md transition-shadow">
       <CardContent className="p-4">
-        {/* Row 1: Grade + Lot ID + Timer */}
+        {/* Row 1: Grade + Lot ID + Timer + Watchlist */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
             <Badge className="bg-primary text-white">{lot.grade}</Badge>
             <span className="text-slate-600 text-sm">#{lot.lotId}</span>
           </div>
-          <div className={`text-xs font-mono ${
-            lot.status === "live" ? "text-status-green" : "text-slate-500"
-          }`}>
-            {formatTimer()}
+          <div className="flex items-center space-x-2">
+            {userRole === "buyer" && (
+              <WatchlistButton lotId={lot.lotId} />
+            )}
+            <div className={`text-xs font-mono ${
+              lot.status === "live" ? "text-status-green" : "text-slate-500"
+            }`}>
+              {formatTimer()}
+            </div>
           </div>
         </div>
 

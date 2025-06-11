@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Plus, Zap } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import LotCard from "@/components/lots/LotCard";
+import LotFilters from "@/components/lots/LotFilters";
 import BidModal from "@/components/lots/BidModal";
 import CashDrawer from "@/components/lots/CashDrawer";
 import InvoiceRow from "@/components/invoices/InvoiceRow";
@@ -17,6 +20,13 @@ export default function LotsAndInvoices() {
   const [selectedLot, setSelectedLot] = useState<Lot | null>(null);
   const [isBidModalOpen, setIsBidModalOpen] = useState(false);
   const [isCashDrawerOpen, setIsCashDrawerOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    grade: "",
+    minQuality: 0,
+    esgCertified: false,
+    status: "",
+    factory: ""
+  });
 
   const { data: lots, isLoading: lotsLoading } = useQuery({
     queryKey: ["/api/lots"],
@@ -58,9 +68,31 @@ export default function LotsAndInvoices() {
     }
   };
 
+  // Filter lots based on user filters
+  const filteredLots = useMemo(() => {
+    if (!lots) return [];
+    
+    return lots.filter((lot: Lot) => {
+      if (filters.grade && lot.grade !== filters.grade) return false;
+      if (filters.minQuality > 0 && lot.qualityStars < filters.minQuality) return false;
+      if (filters.esgCertified && !lot.esgCertified) return false;
+      if (filters.status && lot.status !== filters.status) return false;
+      if (filters.factory && lot.factory !== filters.factory) return false;
+      return true;
+    });
+  }, [lots, filters]);
+
+  // Get available factories for filter dropdown
+  const availableFactories = useMemo(() => {
+    if (!lots) return [];
+    const factories = lots.map((lot: Lot) => lot.factory);
+    return [...new Set(factories)].sort();
+  }, [lots]);
+
   if (!user) return null;
 
-  const liveLots = lots?.filter((lot: Lot) => lot.status === "live") || [];
+  const liveLots = filteredLots.filter((lot: Lot) => lot.status === "live");
+  const loanReadyLots = filteredLots.filter((lot: Lot) => lot.canInstantCash && user.role === "producer");
 
   return (
     <div className="space-y-6">
