@@ -112,7 +112,7 @@ export default function LotFilters({ onFiltersChange, availableFactories }: LotF
               <SelectValue placeholder="All grades" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All grades</SelectItem>
+              <SelectItem value="all">All grades</SelectItem>
               {grades.map((grade) => (
                 <SelectItem key={grade} value={grade}>
                   {grade}
@@ -159,7 +159,7 @@ export default function LotFilters({ onFiltersChange, availableFactories }: LotF
               <SelectValue placeholder="All factories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All factories</SelectItem>
+              <SelectItem value="all">All factories</SelectItem>
               {availableFactories.map((factory) => (
                 <SelectItem key={factory} value={factory}>
                   {factory}
@@ -180,7 +180,7 @@ export default function LotFilters({ onFiltersChange, availableFactories }: LotF
               <SelectValue placeholder="All statuses" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All statuses</SelectItem>
+              <SelectItem value="all">All statuses</SelectItem>
               {statuses.map((status) => (
                 <SelectItem key={status} value={status}>
                   {status.charAt(0).toUpperCase() + status.slice(1)}
