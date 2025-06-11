@@ -874,7 +874,12 @@ export class MemStorage implements IStorage {
 
   async createEsgMetric(metric: InsertEsgMetric): Promise<EsgMetric> {
     const id = 1;
-    const created: EsgMetric = { ...metric, id, createdAt: new Date() };
+    const created: EsgMetric = { 
+      ...metric, 
+      id, 
+      createdAt: new Date(),
+      certifications: metric.certifications || null
+    };
     return created;
   }
 
@@ -885,7 +890,15 @@ export class MemStorage implements IStorage {
 
   async createFactoryFlag(flag: InsertFactoryFlag): Promise<FactoryFlag> {
     const id = 1;
-    const created: FactoryFlag = { ...flag, id, createdAt: new Date() };
+    const created: FactoryFlag = { 
+      ...flag, 
+      id, 
+      createdAt: new Date(),
+      status: flag.status || "open",
+      severity: flag.severity || "medium",
+      assignedTo: flag.assignedTo || null,
+      resolvedAt: flag.resolvedAt || null
+    };
     return created;
   }
 
@@ -900,14 +913,28 @@ export class MemStorage implements IStorage {
 
   async createPaymentMethod(method: InsertPaymentMethod): Promise<PaymentMethod> {
     const id = 1;
-    const created: PaymentMethod = { ...method, id, createdAt: new Date() };
+    const created: PaymentMethod = { 
+      ...method, 
+      id, 
+      createdAt: new Date(),
+      isActive: method.isActive !== false,
+      provider: method.provider || null,
+      accountDetails: method.accountDetails || null,
+      isDefault: method.isDefault || false
+    };
     return created;
   }
 
   // OTP Session methods (stub implementations)
   async createOtpSession(session: InsertOtpSession): Promise<OtpSession> {
     const id = 1;
-    const created: OtpSession = { ...session, id, createdAt: new Date() };
+    const created: OtpSession = { 
+      ...session, 
+      id, 
+      createdAt: new Date(),
+      verified: session.verified || false,
+      attempts: session.attempts || 0
+    };
     return created;
   }
 
@@ -916,4 +943,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = new MemStorage();

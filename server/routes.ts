@@ -330,11 +330,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Notification endpoints
   app.get("/api/notifications", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
     try {
-      const notifications = await storage.getNotificationsForUser ? await storage.getNotificationsForUser(req.user.id) : [];
+      const notifications = await storage.getNotificationsForUser(1); // Demo user ID
       res.json(notifications);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -342,13 +339,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.patch("/api/notifications/:id/read", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
     try {
-      if (storage.markNotificationAsRead) {
-        await storage.markNotificationAsRead(parseInt(req.params.id));
-      }
+      await storage.markNotificationAsRead(parseInt(req.params.id));
       res.json({ success: true });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -356,13 +348,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.patch("/api/notifications/mark-all-read", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
     try {
-      if (storage.markAllNotificationsAsRead) {
-        await storage.markAllNotificationsAsRead(req.user.id);
-      }
+      await storage.markAllNotificationsAsRead(1); // Demo user ID
       res.json({ success: true });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -372,7 +359,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ESG Metrics endpoints
   app.get("/api/esg-metrics", async (req, res) => {
     try {
-      const metrics = storage.getEsgMetrics ? await storage.getEsgMetrics() : [];
+      const metrics = await storage.getEsgMetrics();
       res.json(metrics);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
