@@ -502,7 +502,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Auto-listing endpoints
-  app.get("/api/auto-listing/rules", async (req, res) => {
+  app.get("/api/auto-listing/rules", async (req: any, res) => {
     if (!req.isAuthenticated()) {
       return res.sendStatus(401);
     }
@@ -515,7 +515,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auto-listing/rules", async (req, res) => {
+  app.post("/api/auto-listing/rules", async (req: any, res) => {
     if (!req.isAuthenticated()) {
       return res.sendStatus(401);
     }
@@ -523,8 +523,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const rule = await storage.createAutoListingRule({
         ...req.body,
-        userId: req.user.id,
-        createdAt: new Date()
+        userId: req.user.id
       });
       res.json(rule);
     } catch (error: any) {
@@ -532,7 +531,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/auto-listing/rules/:id", async (req, res) => {
+  app.patch("/api/auto-listing/rules/:id", async (req: any, res) => {
     if (!req.isAuthenticated()) {
       return res.sendStatus(401);
     }
