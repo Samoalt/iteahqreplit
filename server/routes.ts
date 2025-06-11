@@ -328,6 +328,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Notification endpoints
+  app.get("/api/notifications", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+    try {
+      const notifications = await storage.getNotificationsForUser ? await storage.getNotificationsForUser(req.user.id) : [];
+      res.json(notifications);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/notifications/:id/read", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+    try {
+      if (storage.markNotificationAsRead) {
+        await storage.markNotificationAsRead(parseInt(req.params.id));
+      }
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/notifications/mark-all-read", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+    try {
+      if (storage.markAllNotificationsAsRead) {
+        await storage.markAllNotificationsAsRead(req.user.id);
+      }
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ESG Metrics endpoints
+  app.get("/api/esg-metrics", async (req, res) => {
+    try {
+      const metrics = storage.getEsgMetrics ? await storage.getEsgMetrics() : [];
+      res.json(metrics);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/esg-metrics/:factoryId", async (req, res) => {
+    try {
+      const metrics = storage.getEsgMetricsByFactory ? await storage.getEsgMetricsByFactory(req.params.factoryId) : [];
+      res.json(metrics);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Factory Flags endpoints
+  app.get("/api/factory-flags", async (req, res) => {
+    try {
+      const flags = storage.getFactoryFlags ? await storage.getFactoryFlags() : [];
+      res.json(flags);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Lender Pools endpoints
+  app.get("/api/lender-pools", async (req, res) => {
+    try {
+      const pools = storage.getLenderPools ? await storage.getLenderPools() : [];
+      res.json(pools);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Payment Methods endpoints
+  app.get("/api/payment-methods", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+    try {
+      const methods = storage.getPaymentMethodsForUser ? await storage.getPaymentMethodsForUser(req.user.id) : [];
+      res.json(methods);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Dashboard KPIs endpoints
   app.get("/api/dashboard/kpis", async (req, res) => {
     try {

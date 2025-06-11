@@ -629,7 +629,17 @@ export class MemStorage implements IStorage {
 
   async createLot(insertLot: InsertLot): Promise<Lot> {
     const id = parseInt(insertLot.lotId.split('-')[1]);
-    const lot: Lot = { ...insertLot, id, createdAt: new Date() };
+    const lot: Lot = { 
+      ...insertLot, 
+      id, 
+      createdAt: new Date(),
+      status: insertLot.status || "active",
+      qualityStars: insertLot.qualityStars || 4,
+      esgCertified: insertLot.esgCertified || false,
+      canBid: insertLot.canBid !== false,
+      canInstantCash: insertLot.canInstantCash !== false,
+      auctionEndTime: insertLot.auctionEndTime || null
+    };
     this.lots.set(insertLot.lotId, lot);
     return lot;
   }
@@ -649,7 +659,14 @@ export class MemStorage implements IStorage {
 
   async createBid(insertBid: InsertBid): Promise<Bid> {
     const id = this.currentBidId++;
-    const bid: Bid = { ...insertBid, id, createdAt: new Date() };
+    const bid: Bid = { 
+      ...insertBid, 
+      id, 
+      createdAt: new Date(),
+      fxRate: insertBid.fxRate || null,
+      lockFx: insertBid.lockFx || false,
+      isWinning: insertBid.isWinning || false
+    };
     this.bids.set(id, bid);
     return bid;
   }
@@ -761,7 +778,7 @@ export class MemStorage implements IStorage {
   // Activity methods
   async createActivity(insertActivity: InsertActivity): Promise<Activity> {
     const id = this.currentActivityId++;
-    const activity: Activity = { ...insertActivity, id, createdAt: new Date() };
+    const activity: Activity = { ...insertActivity, id, createdAt: new Date(), metadata: insertActivity.metadata || null };
     this.activities.set(id, activity);
     return activity;
   }
@@ -770,6 +787,88 @@ export class MemStorage implements IStorage {
     return Array.from(this.activities.values())
       .filter(activity => activity.userId === userId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  // Notification methods (stub implementations for MemStorage)
+  async getNotificationsForUser(userId: number): Promise<Notification[]> {
+    return [];
+  }
+
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const id = 1;
+    const created: Notification = { ...notification, id, createdAt: new Date() };
+    return created;
+  }
+
+  async markNotificationAsRead(notificationId: number): Promise<void> {
+    // Stub implementation
+  }
+
+  async markAllNotificationsAsRead(userId: number): Promise<void> {
+    // Stub implementation
+  }
+
+  // Lender Pool methods (stub implementations)
+  async getLenderPools(): Promise<LenderPool[]> {
+    return [];
+  }
+
+  async createLenderPool(pool: InsertLenderPool): Promise<LenderPool> {
+    const id = 1;
+    const created: LenderPool = { ...pool, id, createdAt: new Date() };
+    return created;
+  }
+
+  // ESG Metrics methods (stub implementations)
+  async getEsgMetrics(): Promise<EsgMetric[]> {
+    return [];
+  }
+
+  async getEsgMetricsByFactory(factoryId: string): Promise<EsgMetric[]> {
+    return [];
+  }
+
+  async createEsgMetric(metric: InsertEsgMetric): Promise<EsgMetric> {
+    const id = 1;
+    const created: EsgMetric = { ...metric, id, createdAt: new Date() };
+    return created;
+  }
+
+  // Factory Flag methods (stub implementations)
+  async getFactoryFlags(): Promise<FactoryFlag[]> {
+    return [];
+  }
+
+  async createFactoryFlag(flag: InsertFactoryFlag): Promise<FactoryFlag> {
+    const id = 1;
+    const created: FactoryFlag = { ...flag, id, createdAt: new Date() };
+    return created;
+  }
+
+  async updateFactoryFlagStatus(flagId: number, status: string): Promise<void> {
+    // Stub implementation
+  }
+
+  // Payment Method methods (stub implementations)
+  async getPaymentMethodsForUser(userId: number): Promise<PaymentMethod[]> {
+    return [];
+  }
+
+  async createPaymentMethod(method: InsertPaymentMethod): Promise<PaymentMethod> {
+    const id = 1;
+    const created: PaymentMethod = { ...method, id, createdAt: new Date() };
+    return created;
+  }
+
+  // OTP Session methods (stub implementations)
+  async createOtpSession(session: InsertOtpSession): Promise<OtpSession> {
+    const id = 1;
+    const created: OtpSession = { ...session, id, createdAt: new Date() };
+    return created;
+  }
+
+  async verifyOtpSession(sessionId: string, otpCode: string): Promise<boolean> {
+    return false;
   }
 }
 
