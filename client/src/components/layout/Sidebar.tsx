@@ -78,7 +78,7 @@ export default function Sidebar() {
 
   if (!user) return null;
 
-  const visibleItems = navigationItems.filter(item => item.roles.includes(user.role));
+  const visibleItems = getNavigationItems(user.role);
 
   return (
     <div className="w-64 bg-white shadow-lg border-r border-slate-200">
