@@ -129,6 +129,85 @@ export const activities = pgTable("activities", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Notifications/Alerts table
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  type: text("type").notNull(), // margin_call, quality_drift, out_bid, fx_breach, payout_delay
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  priority: text("priority").notNull().default("medium"), // low, medium, high, urgent
+  read: boolean("read").notNull().default(false),
+  actionUrl: text("action_url"),
+  metadata: json("metadata"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Lender Pools table
+export const lenderPools = pgTable("lender_pools", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  aprRate: decimal("apr_rate", { precision: 5, scale: 2 }).notNull(),
+  totalCapacity: decimal("total_capacity", { precision: 15, scale: 2 }).notNull(),
+  availableCapacity: decimal("available_capacity", { precision: 15, scale: 2 }).notNull(),
+  riskTier: text("risk_tier").notNull().default("medium"), // low, medium, high
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ESG Metrics table
+export const esgMetrics = pgTable("esg_metrics", {
+  id: serial("id").primaryKey(),
+  factoryId: text("factory_id").notNull(),
+  environmentalScore: decimal("environmental_score", { precision: 5, scale: 2 }).notNull(),
+  socialScore: decimal("social_score", { precision: 5, scale: 2 }).notNull(),
+  governanceScore: decimal("governance_score", { precision: 5, scale: 2 }).notNull(),
+  overallScore: decimal("overall_score", { precision: 5, scale: 2 }).notNull(),
+  certifications: text("certifications").array(),
+  assessmentDate: timestamp("assessment_date").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Factory Flags table
+export const factoryFlags = pgTable("factory_flags", {
+  id: serial("id").primaryKey(),
+  factoryId: text("factory_id").notNull(),
+  flaggedBy: integer("flagged_by").notNull(),
+  flagType: text("flag_type").notNull(), // payout_delay, quality_issue, esg_concern
+  description: text("description").notNull(),
+  severity: text("severity").notNull().default("medium"), // low, medium, high, critical
+  status: text("status").notNull().default("open"), // open, investigating, resolved
+  assignedTo: integer("assigned_to"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  resolvedAt: timestamp("resolved_at"),
+});
+
+// Payment Methods table
+export const paymentMethods = pgTable("payment_methods", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  type: text("type").notNull(), // wallet, bank_account, ach, wire
+  provider: text("provider"), // mpesa, ach_provider, bank_name
+  accountDetails: json("account_details"),
+  isDefault: boolean("is_default").notNull().default(false),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// OTP Sessions table
+export const otpSessions = pgTable("otp_sessions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  sessionId: text("session_id").notNull().unique(),
+  otpCode: text("otp_code").notNull(),
+  purpose: text("purpose").notNull(), // payment, auth, transfer
+  expiresAt: timestamp("expires_at").notNull(),
+  verified: boolean("verified").notNull().default(false),
+  attempts: integer("attempts").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertLotSchema = createInsertSchema(lots).omit({ id: true, createdAt: true });
@@ -140,6 +219,12 @@ export const insertFxLockSchema = createInsertSchema(fxLocks).omit({ id: true, c
 export const insertInsurancePolicySchema = createInsertSchema(insurancePolicies).omit({ id: true, createdAt: true });
 export const insertWireTransferSchema = createInsertSchema(wireTransfers).omit({ id: true, createdAt: true });
 export const insertActivitySchema = createInsertSchema(activities).omit({ id: true, createdAt: true });
+export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
+export const insertLenderPoolSchema = createInsertSchema(lenderPools).omit({ id: true, createdAt: true });
+export const insertEsgMetricSchema = createInsertSchema(esgMetrics).omit({ id: true, createdAt: true });
+export const insertFactoryFlagSchema = createInsertSchema(factoryFlags).omit({ id: true, createdAt: true });
+export const insertPaymentMethodSchema = createInsertSchema(paymentMethods).omit({ id: true, createdAt: true });
+export const insertOtpSessionSchema = createInsertSchema(otpSessions).omit({ id: true, createdAt: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -162,3 +247,15 @@ export type WireTransfer = typeof wireTransfers.$inferSelect;
 export type InsertWireTransfer = z.infer<typeof insertWireTransferSchema>;
 export type Activity = typeof activities.$inferSelect;
 export type InsertActivity = z.infer<typeof insertActivitySchema>;
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type LenderPool = typeof lenderPools.$inferSelect;
+export type InsertLenderPool = z.infer<typeof insertLenderPoolSchema>;
+export type EsgMetric = typeof esgMetrics.$inferSelect;
+export type InsertEsgMetric = z.infer<typeof insertEsgMetricSchema>;
+export type FactoryFlag = typeof factoryFlags.$inferSelect;
+export type InsertFactoryFlag = z.infer<typeof insertFactoryFlagSchema>;
+export type PaymentMethod = typeof paymentMethods.$inferSelect;
+export type InsertPaymentMethod = z.infer<typeof insertPaymentMethodSchema>;
+export type OtpSession = typeof otpSessions.$inferSelect;
+export type InsertOtpSession = z.infer<typeof insertOtpSessionSchema>;

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Clock } from "lucide-react";
+import NotificationCenter from "@/components/NotificationCenter";
 
 export default function TopBar() {
   const { user } = useAuth();
