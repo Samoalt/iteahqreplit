@@ -1,10 +1,18 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { Clock } from "lucide-react";
+import { Clock, LogOut, User, Settings, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import NotificationCenter from "@/components/NotificationCenter";
 
 export default function TopBar() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [auctionTimer, setAuctionTimer] = useState({ hours: 2, minutes: 15, seconds: 43 });
 
   useEffect(() => {
@@ -77,23 +85,49 @@ export default function TopBar() {
 
 
 
-          {/* User Avatar & Role */}
-          <div className="flex items-center space-x-3">
-            <div className="text-right">
-              <div className="text-sm font-medium text-slate-900">
-                {user.firstName} {user.lastName}
-              </div>
-              <div className="text-xs text-slate-500">
-                {user.role === "buyer" ? "Buyer • Premium" :
-                 user.role === "producer" ? "Producer • Verified" :
-                 user.role === "ktda_ro" ? "KTDA • Board Member" :
-                 "Admin • Operations"}
-              </div>
-            </div>
-            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-semibold">
-              {user.firstName[0]}{user.lastName[0]}
-            </div>
-          </div>
+          {/* User Menu with Logout */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex items-center space-x-3 p-2 hover:bg-slate-50">
+                <div className="text-right">
+                  <div className="text-sm font-medium text-slate-900">
+                    {user.firstName} {user.lastName}
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    {user.role === "buyer" ? "Buyer • Premium" :
+                     user.role === "producer" ? "Producer • Verified" :
+                     user.role === "ktda_ro" ? "KTDA • Board Member" :
+                     "Admin • Operations"}
+                  </div>
+                </div>
+                <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-semibold">
+                  {user.firstName[0]}{user.lastName[0]}
+                </div>
+                <ChevronDown className="w-4 h-4 text-slate-400" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem>
+                <User className="w-4 h-4 mr-2" />
+                My Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Settings className="w-4 h-4 mr-2" />
+                Account Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  logout();
+                  window.location.reload();
+                }}
+                className="text-red-600 focus:text-red-600"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
