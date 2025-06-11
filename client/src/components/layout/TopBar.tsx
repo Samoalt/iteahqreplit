@@ -72,6 +72,9 @@ export default function TopBar() {
         </div>
 
         <div className="flex items-center space-x-4">
+          {/* Notifications */}
+          <NotificationCenter />
+
           {/* Workspace Switcher */}
           <div className="relative">
             <select 

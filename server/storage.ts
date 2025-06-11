@@ -1,11 +1,15 @@
 import {
   users, lots, bids, invoices, wallets, instantCashAdvances,
-  fxLocks, insurancePolicies, wireTransfers, activities,
+  fxLocks, insurancePolicies, wireTransfers, activities, notifications,
+  lenderPools, esgMetrics, factoryFlags, paymentMethods, otpSessions,
   type User, type InsertUser, type Lot, type InsertLot,
   type Bid, type InsertBid, type Invoice, type InsertInvoice,
   type Wallet, type InsertWallet, type InstantCashAdvance, type InsertInstantCashAdvance,
   type FxLock, type InsertFxLock, type InsurancePolicy, type InsertInsurancePolicy,
-  type WireTransfer, type InsertWireTransfer, type Activity, type InsertActivity
+  type WireTransfer, type InsertWireTransfer, type Activity, type InsertActivity,
+  type Notification, type InsertNotification, type LenderPool, type InsertLenderPool,
+  type EsgMetric, type InsertEsgMetric, type FactoryFlag, type InsertFactoryFlag,
+  type PaymentMethod, type InsertPaymentMethod, type OtpSession, type InsertOtpSession
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
@@ -57,6 +61,34 @@ export interface IStorage {
   // Activities
   createActivity(activity: InsertActivity): Promise<Activity>;
   getActivitiesForUser(userId: number): Promise<Activity[]>;
+
+  // Notifications
+  getNotificationsForUser(userId: number): Promise<Notification[]>;
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  markNotificationAsRead(notificationId: number): Promise<void>;
+  markAllNotificationsAsRead(userId: number): Promise<void>;
+
+  // Lender Pools
+  getLenderPools(): Promise<LenderPool[]>;
+  createLenderPool(pool: InsertLenderPool): Promise<LenderPool>;
+
+  // ESG Metrics
+  getEsgMetrics(): Promise<EsgMetric[]>;
+  getEsgMetricsByFactory(factoryId: string): Promise<EsgMetric[]>;
+  createEsgMetric(metric: InsertEsgMetric): Promise<EsgMetric>;
+
+  // Factory Flags
+  getFactoryFlags(): Promise<FactoryFlag[]>;
+  createFactoryFlag(flag: InsertFactoryFlag): Promise<FactoryFlag>;
+  updateFactoryFlagStatus(flagId: number, status: string): Promise<void>;
+
+  // Payment Methods
+  getPaymentMethodsForUser(userId: number): Promise<PaymentMethod[]>;
+  createPaymentMethod(method: InsertPaymentMethod): Promise<PaymentMethod>;
+
+  // OTP Sessions
+  createOtpSession(session: InsertOtpSession): Promise<OtpSession>;
+  verifyOtpSession(sessionId: string, otpCode: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -233,6 +265,124 @@ export class DatabaseStorage implements IStorage {
 
   async getActivitiesForUser(userId: number): Promise<Activity[]> {
     return await db.select().from(activities).where(eq(activities.userId, userId));
+  }
+
+  // Notifications
+  async getNotificationsForUser(userId: number): Promise<Notification[]> {
+    return await db.select().from(notifications).where(eq(notifications.userId, userId)).orderBy(notifications.createdAt);
+  }
+
+  async createNotification(insertNotification: InsertNotification): Promise<Notification> {
+    const [notification] = await db
+      .insert(notifications)
+      .values(insertNotification)
+      .returning();
+    return notification;
+  }
+
+  async markNotificationAsRead(notificationId: number): Promise<void> {
+    await db
+      .update(notifications)
+      .set({ read: true })
+      .where(eq(notifications.id, notificationId));
+  }
+
+  async markAllNotificationsAsRead(userId: number): Promise<void> {
+    await db
+      .update(notifications)
+      .set({ read: true })
+      .where(eq(notifications.userId, userId));
+  }
+
+  // Lender Pools
+  async getLenderPools(): Promise<LenderPool[]> {
+    return await db.select().from(lenderPools);
+  }
+
+  async createLenderPool(insertPool: InsertLenderPool): Promise<LenderPool> {
+    const [pool] = await db
+      .insert(lenderPools)
+      .values(insertPool)
+      .returning();
+    return pool;
+  }
+
+  // ESG Metrics
+  async getEsgMetrics(): Promise<EsgMetric[]> {
+    return await db.select().from(esgMetrics);
+  }
+
+  async getEsgMetricsByFactory(factoryId: string): Promise<EsgMetric[]> {
+    return await db.select().from(esgMetrics).where(eq(esgMetrics.factoryId, factoryId));
+  }
+
+  async createEsgMetric(insertMetric: InsertEsgMetric): Promise<EsgMetric> {
+    const [metric] = await db
+      .insert(esgMetrics)
+      .values(insertMetric)
+      .returning();
+    return metric;
+  }
+
+  // Factory Flags
+  async getFactoryFlags(): Promise<FactoryFlag[]> {
+    return await db.select().from(factoryFlags);
+  }
+
+  async createFactoryFlag(insertFlag: InsertFactoryFlag): Promise<FactoryFlag> {
+    const [flag] = await db
+      .insert(factoryFlags)
+      .values(insertFlag)
+      .returning();
+    return flag;
+  }
+
+  async updateFactoryFlagStatus(flagId: number, status: string): Promise<void> {
+    await db
+      .update(factoryFlags)
+      .set({ status })
+      .where(eq(factoryFlags.id, flagId));
+  }
+
+  // Payment Methods
+  async getPaymentMethodsForUser(userId: number): Promise<PaymentMethod[]> {
+    return await db.select().from(paymentMethods).where(eq(paymentMethods.userId, userId));
+  }
+
+  async createPaymentMethod(insertMethod: InsertPaymentMethod): Promise<PaymentMethod> {
+    const [method] = await db
+      .insert(paymentMethods)
+      .values(insertMethod)
+      .returning();
+    return method;
+  }
+
+  // OTP Sessions
+  async createOtpSession(insertSession: InsertOtpSession): Promise<OtpSession> {
+    const [session] = await db
+      .insert(otpSessions)
+      .values(insertSession)
+      .returning();
+    return session;
+  }
+
+  async verifyOtpSession(sessionId: string, otpCode: string): Promise<boolean> {
+    const [session] = await db
+      .select()
+      .from(otpSessions)
+      .where(and(eq(otpSessions.sessionId, sessionId), eq(otpSessions.otpCode, otpCode)));
+    
+    if (!session) return false;
+    if (session.verified) return false;
+    if (session.expiresAt < new Date()) return false;
+    if (session.attempts >= 3) return false;
+
+    await db
+      .update(otpSessions)
+      .set({ verified: true })
+      .where(eq(otpSessions.id, session.id));
+
+    return true;
   }
 }
 
