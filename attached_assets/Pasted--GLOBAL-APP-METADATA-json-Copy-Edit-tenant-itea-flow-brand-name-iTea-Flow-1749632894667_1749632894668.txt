@@ -1,0 +1,139 @@
+⬛️ GLOBAL APP METADATA
+json
+Copy
+Edit
+{
+  "tenant": "itea-flow",
+  "brand": {
+    "name": "iTea Flow",
+    "footer": "powered by Elastic OS",
+    "primary": "#01624E",          // deep-green
+    "accent":  "#3B82F6",          // electric-blue
+    "font":    "Inter"
+  },
+  "workspaces": ["Producer", "Buyer", "KTDA Board"],
+  "wsRoleMatrix": {
+    "Producer": ["producer"],
+    "Buyer"   : ["buyer"],
+    "KTDA Board": ["ktda_ro"]
+  }
+}
+1 ▸ NAVIGATION SHELL (shared layout)
+pgsql
+Copy
+Edit
+Left Sidebar Items
+  🏠 Dashboard
+  📦 Lots & Invoices  ▾       →   Sub-tabs: Catalogue | Live Lots | Invoices
+  💼 Wallets & Settlement
+  🚀 Instant Cash      (visible if role=producer)
+  💱 FX & Credit       (visible if role IN [buyer,lender])
+  🛡 Insurance Hub
+  📑 Statements & Reports
+  🏛 Board View        (visible if role=ktda_ro)
+  🔔 Alerts
+  ⚙️ Admin             (visible if role=ops_admin)
+Top Bar
+  • Live-auction timer  • Workspace switcher  • User avatar + role
+2 ▸ STATUS COLOUR TOKENS (central theme)
+Token name	Hex	Used for
+status-green	#10B981	Paid ✔, Cash ready ⚡, Loan active
+status-blue	#3B82F6	In clearing, Processing
+status-amber	#FABB00	Review, Out-bid, Buffer low
+status-red	#F04438	Error, Overdue, Suspended
+status-grey	#6B7280	Draft, Queued
+
+3 ▸ COMPONENT SPECIFICATIONS (per screen)
+3.1 LotCard (component id: LotCard)
+mathematica
+Copy
+Edit
+Props: {lotId, saleNo, factory, grade, kg, offerPrice, qualityStars, esgLeaf,
+        statusChip, canBid, canInstantCash}
+Layout: 300 px wide card; two-row stack
+  Row 1: Grade + lotId + timer (if live) right-aligned
+  Row 2: Kg | OfferPrice | QualityStars ★★★★☆
+Badges: ⚡ Cash-Ready shows if producer & canInstantCash=true
+Actions: 
+  • If canBid → Button “Bid Now”
+  • If producer & canInstantCash → Button “Instant Cash”
+3.2 Bid Modal (BidModal)
+makefile
+Copy
+Edit
+Inputs: bidAmount (number), lockFx (toggle)
+Displays: bestBid, reservePrice, liveFxQuote, utilisationBar (if bidCredit)
+Validations: bid ≥ reservePrice; show fxQuote stale if >30 s
+Emit: placeBid({lotId, bidAmount, lockFx})
+3.3 Instant Cash Drawer (CashDrawer)
+css
+Copy
+Edit
+Slider 60-80 % LTV  • APR label 12 % p.a.
+Lien checkbox auto-checked  • Accept / Cancel buttons
+OnAccept → emit drawLoan({lotId, pct})
+3.4 Invoice Row (InvoiceRow)
+Columns: Invoice#, Lots#, Amount USD, Status pill, Pay button, PDF link
+Pay dropdown: Wallet | Wire(E-Slip) → triggers generateESlip(invoiceId, method)
+
+4 ▸ SCREEN WIREFRAMES (HF = high fidelity wire)
+4.1 Dashboard (HF)
+pgsql
+Copy
+Edit
+Four KPI cards (role-filtered)
+Row-2: Small heat-map (lots by grade) + Recent activity feed
+Status Bar: Unmatched 🔴 | Review 🟠 | Processing 🔵 | Paid 🟢
+4.2 Lots & Invoices
+Sub-tab Catalogue → Table view with LotCard list
+Sub-tab Live Lots → Masonry grid of LotCards streaming WS events
+Sub-tab Invoices → InvoiceRow list + filters
+
+4.3 Wallets & Settlement
+Balance tiles (KES, USD) → click tile opens ledger drawer
+Deposit → ACH/SWIFT modal • Withdraw → RTGS/M-Pesa modal
+Wire Tracker widget: In Clearing | Cleared ✔ | Overdue counts
+
+4.4 FX & Credit
+Tabs: FX Lock | Bid-Credit | Lender Pools
+FX Lock card: live quote, amount input, Book button
+Bid-Credit: limit dial + margin calls list
+Lender Pools: card per pool (APR, utilisation, add liquidity)
+
+4.5 Insurance Hub
+Chip selector: Drought | Quality | Marine
+Quote card → Buy → Claim wizard
+
+4.6 Board View (KTDA workspace)
+Sub-tabs: Overview • Factories • Payouts • Analytics
+Factory table row-click opens modal with lots + payout timeline.
+
+5 ▸ WORKFLOW SPEC (STEP-BY-STEP)
+#	Actor	Flow name	UI steps	Emitted events / API hits
+1	Buyer	Bid on live lot	LiveLots → click BidNow → BidModal: enter price → PlaceBid	POST /api/bid
+2	Auction engine	Lot won	WS event lotWon → Invoice auto-appears; card turns green	—
+3	Buyer	Pay by wallet	InvoiceRow Pay ▾ Wallet → confirm debit	POST /invoice/:id/pay
+4	Producer	Draw Instant Cash before sale	Catalogue → InstantCash btn → CashDrawer Accept	POST /credit/draw
+5	Producer	Draw Advance after sale	Invoice Paid event → Auto-advance 100 % minus fee	hand-led by Split engine
+6	KTDA	Monitor payout SLA	BoardView → Payouts timeline	passive
+7	Ops	Flag overdue invoice	Alerts → click row → send reminder	POST /alerts/resolve
+
+6 ▸ STATUS TRANSITIONS (STATE MACHINE)
+yaml
+Copy
+Edit
+Lot status:  Draft→Catalogue→Live→Sold
+Invoice:     Pending→InClearing→Paid ✔
+Loan:        QuoteReady→Active→Repaid✔
+Insurance:   Quoted→Bound→ClaimTriggered→Paid✔
+7 ▸ DUMMY DATA (Builder can inject)
+10 factories (FAC01…FAC10) with wallet IDs
+
+3 buyers (BUY01…BUY03) with USD wallets
+
+LiveWS event every 15 s: bidUpdate, lotWon, invoicePaid
+
+8 ▸ ACCESS CONSTRAINTS
+producer role hides BidModal; buyer hides CashDrawer.
+
+ktda_ro role sets readOnly=true on every interactive component.
