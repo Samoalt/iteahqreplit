@@ -404,7 +404,12 @@ export class MemStorage implements IStorage {
     ];
 
     demoInvoices.forEach(invoice => {
-      this.invoices.set(invoice.invoiceNumber, { ...invoice, id: parseInt(invoice.invoiceNumber.split('-')[1]), createdAt: new Date() });
+      this.invoices.set(invoice.invoiceNumber, { 
+        ...invoice, 
+        id: parseInt(invoice.invoiceNumber.split('-')[1]), 
+        createdAt: new Date(),
+        paidAt: invoice.paidAt || null
+      });
     });
 
     // Create demo activities
@@ -443,7 +448,7 @@ export class MemStorage implements IStorage {
 
     demoActivities.forEach(activity => {
       const id = this.currentActivityId++;
-      this.activities.set(id, { ...activity, id, createdAt: new Date() });
+      this.activities.set(id, { ...activity, id, createdAt: new Date(), metadata: activity.metadata || {} });
     });
   }
 
@@ -458,7 +463,7 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
+    const user: User = { ...insertUser, id, isActive: insertUser.isActive ?? true };
     this.users.set(id, user);
     return user;
   }
