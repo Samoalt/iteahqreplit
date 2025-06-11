@@ -119,7 +119,7 @@ export default function TopBar() {
               <DropdownMenuItem
                 onClick={() => {
                   logout();
-                  window.location.reload();
+                  window.location.href = '/';
                 }}
                 className="text-red-600 focus:text-red-600"
               >
