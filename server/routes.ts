@@ -155,26 +155,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Stripe payment intent creation
+  app.post("/api/create-payment-intent", async (req, res) => {
+    try {
+      const { amount, invoiceId } = req.body;
+      
+      // In a real implementation, this would create a Stripe payment intent
+      // For now, return a mock client secret for demonstration
+      const clientSecret = `pi_mock_${Date.now()}_secret`;
+      
+      res.json({ 
+        clientSecret,
+        amount,
+        invoiceId
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create payment intent" });
+    }
+  });
+
   app.post("/api/invoices/:invoiceId/pay", async (req, res) => {
     try {
       const { method } = req.body;
-      await storage.updateInvoiceStatus(req.params.invoiceId, "paid", method);
       
-      // Create activity
-      await storage.createActivity({
-        userId: 1,
-        type: "invoice_paid",
-        description: `Invoice ${req.params.invoiceId} paid via ${method}`,
-        metadata: { invoiceNumber: req.params.invoiceId, method }
-      });
+      if (method === "stripe") {
+        // Handle Stripe payment - set to clearing first
+        await storage.updateInvoiceStatus(req.params.invoiceId, "in_clearing", method);
+        
+        // Simulate Stripe processing delay
+        setTimeout(async () => {
+          await storage.updateInvoiceStatus(req.params.invoiceId, "paid", method);
+          
+          // Create activity for successful payment
+          await storage.createActivity({
+            userId: 1,
+            type: "invoice_paid",
+            description: `Invoice ${req.params.invoiceId} paid via credit card`,
+            metadata: { invoiceNumber: req.params.invoiceId, method: "stripe" }
+          });
 
-      // Emit WebSocket event
-      io.emit('invoicePaid', {
-        invoiceId: req.params.invoiceId,
-        method: method
-      });
-      
-      res.json({ message: "Payment processed successfully" });
+          // Emit WebSocket event
+          io.emit('invoicePaid', {
+            invoiceId: req.params.invoiceId,
+            method: "stripe"
+          });
+        }, 3000); // 3 second processing delay
+        
+        res.json({ message: "Payment processing initiated" });
+      } else {
+        // Handle wallet and wire payments immediately
+        await storage.updateInvoiceStatus(req.params.invoiceId, "paid", method);
+        
+        // Create activity
+        await storage.createActivity({
+          userId: 1,
+          type: "invoice_paid",
+          description: `Invoice ${req.params.invoiceId} paid via ${method}`,
+          metadata: { invoiceNumber: req.params.invoiceId, method }
+        });
+
+        // Emit WebSocket event
+        io.emit('invoicePaid', {
+          invoiceId: req.params.invoiceId,
+          method: method
+        });
+        
+        res.json({ message: "Payment processed successfully" });
+      }
     } catch (error) {
       res.status(500).json({ message: "Failed to process payment" });
     }
