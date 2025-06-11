@@ -19,28 +19,37 @@ import StatementsAndReports from "@/pages/StatementsAndReports";
 import Alerts from "@/pages/Alerts";
 import Admin from "@/pages/Admin";
 import AutoListing from "@/pages/AutoListing";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+import ForgotPassword from "@/pages/ForgotPassword";
 import NotFound from "@/pages/not-found";
 
 function Router() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
 
-  if (!user) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
-          <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4 animate-pulse">
             <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2L13.09 7.09L18 8L13.09 8.91L12 14L10.91 8.91L6 8L10.91 7.09L12 2Z"/>
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-slate-900 mb-2">iTea Flow</h1>
-          <p className="text-slate-600 mb-6">powered by Elastic OS</p>
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200 max-w-sm mx-auto">
-            <p className="text-sm text-slate-600 mb-4">Demo Access - No login required</p>
-            <p className="text-xs text-slate-500">Automatically logging in as Sarah Chen (Buyer)</p>
-          </div>
+          <p className="text-slate-600">powered by Elastic OS</p>
         </div>
       </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Switch>
+        <Route path="/register" component={Register} />
+        <Route path="/forgot-password" component={ForgotPassword} />
+        <Route path="*" component={Login} />
+      </Switch>
     );
   }
 

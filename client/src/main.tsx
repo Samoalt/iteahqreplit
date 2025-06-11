@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
+import { AuthProvider } from "@/hooks/useAuth";
 import "./index.css";
 
 // Import Google Fonts
@@ -8,4 +9,8 @@ link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600
 link.rel = 'stylesheet';
 document.head.appendChild(link);
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <AuthProvider>
+    <App />
+  </AuthProvider>
+);

@@ -1,6 +1,17 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import { User } from '@/types';
 import { apiRequest } from '@/lib/queryClient';
+
+interface AuthContextType {
+  user: User | null;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => void;
+  checkAuth: () => Promise<void>;
+  switchRole: (newRole: string) => void;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Global state for role switching
 let globalUser: User | null = null;
@@ -44,11 +55,17 @@ export function useAuth() {
 
   const checkAuth = async () => {
     try {
-      const response = await apiRequest('GET', '/api/auth/me');
-      const data = await response.json();
-      globalUser = data.user;
-      notifyListeners();
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        const data = await apiRequest('GET', '/auth/me');
+        globalUser = data;
+        notifyListeners();
+      } else {
+        initializeUser();
+        notifyListeners();
+      }
     } catch (error) {
+      localStorage.removeItem('auth_token');
       initializeUser();
       notifyListeners();
     } finally {
@@ -58,10 +75,10 @@ export function useAuth() {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await apiRequest('POST', '/auth/login', { email, password });
-      if (response.token && response.user) {
-        localStorage.setItem('auth_token', response.token);
-        globalUser = response.user;
+      const data = await apiRequest('POST', '/auth/login', { email, password });
+      if (data.token && data.user) {
+        localStorage.setItem('auth_token', data.token);
+        globalUser = data.user;
         notifyListeners();
         return true;
       }
@@ -73,6 +90,7 @@ export function useAuth() {
   };
 
   const logout = () => {
+    localStorage.removeItem('auth_token');
     globalUser = null;
     notifyListeners();
   };
