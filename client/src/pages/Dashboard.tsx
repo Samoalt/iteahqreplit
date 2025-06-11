@@ -164,11 +164,11 @@ export default function Dashboard() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
-          <p className="text-slate-600">Overview of your tea trading activity</p>
+          <h1 className="section-title text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground">Overview of your tea trading activity</p>
         </div>
         <div className="flex items-center space-x-3">
-          <Button onClick={handleRefresh} className="bg-accent hover:bg-accent/90">
+          <Button onClick={handleRefresh} className="bg-primary hover:bg-primary/90">
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
@@ -180,22 +180,22 @@ export default function Dashboard() {
         {kpiCards.map((card, index) => {
           const Icon = card.icon;
           return (
-            <Card key={index} className="hover:shadow-md transition-shadow">
+            <Card key={index} className="card-dashboard feature-card">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-600">{card.label}</p>
-                    <p className="text-2xl font-bold text-slate-900">{card.value}</p>
-                    <p className="text-sm text-status-green flex items-center mt-1">
+                    <p className="text-sm text-muted-foreground">{card.label}</p>
+                    <p className="text-2xl font-bold text-foreground">{card.value}</p>
+                    <p className="text-sm text-success flex items-center mt-1">
                       <ArrowUp className="w-3 h-3 mr-1" />
                       <span>{card.change}</span>
                     </p>
                   </div>
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center bg-opacity-10 ${
-                    card.color === "text-accent" ? "bg-accent" :
-                    card.color === "text-primary" ? "bg-primary" :
-                    card.color === "text-status-amber" ? "bg-status-amber" :
-                    "bg-status-blue"
+                    card.color === "text-accent" ? "gradient-purple" :
+                    card.color === "text-primary" ? "gradient-blue" :
+                    card.color === "text-status-amber" ? "gradient-yellow" :
+                    "gradient-blue"
                   }`}>
                     <Icon className={`w-6 h-6 ${card.color}`} />
                   </div>
