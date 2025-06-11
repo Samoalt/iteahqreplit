@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import LotCard from "@/components/lots/LotCard";
 import LotFilters from "@/components/lots/LotFilters";
+import LiveBiddingWidget from "@/components/lots/LiveBiddingWidget";
 import BidModal from "@/components/lots/BidModal";
 import CashDrawer from "@/components/lots/CashDrawer";
 import InvoiceRow from "@/components/invoices/InvoiceRow";
@@ -36,22 +37,11 @@ export default function LotsAndInvoices() {
     queryKey: ["/api/invoices"],
   });
 
-  // Subscribe to WebSocket events
-  useState(() => {
-    const unsubscribeBid = subscribe?.("bidPlaced", (data) => {
-      console.log("New bid placed:", data);
-    });
-
-    const unsubscribeInvoice = subscribe?.("invoicePaid", (data) => {
-      console.log("Invoice paid:", data);
-    });
-
-    return () => {
-      unsubscribeBid?.();
-      unsubscribeInvoice?.();
-    };
+  const { data: fxRate } = useQuery({
+    queryKey: ["/api/fx-rate"],
   });
 
+  // Handle bid clicks
   const handleBidClick = (lotId: string) => {
     const lot = lots?.find((l: Lot) => l.lotId === lotId);
     if (lot) {
@@ -60,6 +50,7 @@ export default function LotsAndInvoices() {
     }
   };
 
+  // Handle instant cash clicks
   const handleInstantCashClick = (lotId: string) => {
     const lot = lots?.find((l: Lot) => l.lotId === lotId);
     if (lot) {
@@ -68,13 +59,13 @@ export default function LotsAndInvoices() {
     }
   };
 
-  // Filter lots based on user filters
+  // Filter lots based on current filters
   const filteredLots = useMemo(() => {
     if (!lots) return [];
     
     return lots.filter((lot: Lot) => {
       if (filters.grade && lot.grade !== filters.grade) return false;
-      if (filters.minQuality > 0 && lot.qualityStars < filters.minQuality) return false;
+      if (filters.minQuality && lot.qualityStars < filters.minQuality) return false;
       if (filters.esgCertified && !lot.esgCertified) return false;
       if (filters.status && lot.status !== filters.status) return false;
       if (filters.factory && lot.factory !== filters.factory) return false;
@@ -86,23 +77,41 @@ export default function LotsAndInvoices() {
   const availableFactories = useMemo(() => {
     if (!lots) return [];
     const factories = lots.map((lot: Lot) => lot.factory);
-    return [...new Set(factories)].sort();
+    return [...new Set(factories)];
   }, [lots]);
 
-  if (!user) return null;
-
   const liveLots = filteredLots.filter((lot: Lot) => lot.status === "live");
-  const loanReadyLots = filteredLots.filter((lot: Lot) => lot.canInstantCash && user.role === "producer");
+  const loanReadyLots = filteredLots.filter((lot: Lot) => lot.canInstantCash && user?.role === "producer");
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Lots & Invoices</h1>
-          <p className="text-slate-600">Manage your tea lot bidding and invoice payments</p>
+          <h1 className="section-title text-foreground">Lots & Invoices</h1>
+          <p className="text-muted-foreground">Manage your tea lot bidding and invoice payments</p>
         </div>
+        {user?.role === "producer" && (
+          <Button className="bg-primary hover:bg-primary/90">
+            <Plus className="w-4 h-4 mr-2" />
+            List New Lot
+          </Button>
+        )}
       </div>
+
+      {/* Producer Quick Stats */}
+      {user?.role === "producer" && loanReadyLots.length > 0 && (
+        <Card className="bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-200">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Zap className="w-5 h-5 text-yellow-600" />
+              <span className="font-medium text-yellow-800">
+                {loanReadyLots.length} lots ready for instant cash advance
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs defaultValue="catalogue" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
@@ -113,109 +122,96 @@ export default function LotsAndInvoices() {
 
         {/* Catalogue Tab */}
         <TabsContent value="catalogue" className="space-y-6">
-          {lotsLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="w-80 h-96 bg-slate-200 animate-pulse rounded-xl"></div>
-              ))}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Filters Sidebar */}
+            <div className="lg:col-span-1">
+              <LotFilters 
+                onFiltersChange={setFilters}
+                availableFactories={availableFactories}
+              />
             </div>
+
+            {/* Lots Grid */}
+            <div className="lg:col-span-3">
+              {lotsLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="w-full h-96 bg-slate-200 animate-pulse rounded-xl"></div>
+                  ))}
+                </div>
+              ) : filteredLots.length === 0 ? (
+                <Card className="feature-card">
+                  <CardContent className="p-8 text-center">
+                    <h3 className="card-title text-muted-foreground mb-2">No lots found</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Try adjusting your filters or check back later for new listings.
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filteredLots.map((lot: Lot) => (
+                    <LotCard
+                      key={lot.id}
+                      lot={lot}
+                      onBid={user?.role === "buyer" ? handleBidClick : undefined}
+                      onInstantCash={user?.role === "producer" ? handleInstantCashClick : undefined}
+                      userRole={user?.role}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Live Lots Tab */}
+        <TabsContent value="live" className="space-y-6">
+          {liveLots.length === 0 ? (
+            <Card className="feature-card">
+              <CardContent className="p-8 text-center">
+                <h3 className="card-title text-muted-foreground mb-2">No live auctions</h3>
+                <p className="text-sm text-muted-foreground">
+                  Check back later for active bidding opportunities.
+                </p>
+              </CardContent>
+            </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {lots?.map((lot: Lot) => (
-                <LotCard
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {liveLots.map((lot: Lot) => (
+                <LiveBiddingWidget
                   key={lot.id}
                   lot={lot}
-                  onBid={user.role === "buyer" ? handleBidClick : undefined}
-                  onInstantCash={user.role === "producer" ? handleInstantCashClick : undefined}
-                  userRole={user.role}
+                  highestBid={parseFloat(lot.offerPrice)}
+                  currentFxRate={fxRate?.rate || "130.00"}
                 />
               ))}
             </div>
           )}
         </TabsContent>
 
-        {/* Live Lots Tab */}
-        <TabsContent value="live" className="space-y-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Live Auction Feed</CardTitle>
-              <div className="flex items-center space-x-2 text-status-green">
-                <div className="w-2 h-2 bg-status-green rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium">Live Updates</span>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {liveLots.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {liveLots.map((lot: Lot) => (
-                    <div key={lot.id} className="relative">
-                      <LotCard
-                        lot={lot}
-                        onBid={user.role === "buyer" ? handleBidClick : undefined}
-                        onInstantCash={user.role === "producer" ? handleInstantCashClick : undefined}
-                        userRole={user.role}
-                      />
-                      {lot.status === "live" && (
-                        <div className="absolute -top-2 -right-2">
-                          <Badge className="bg-status-green text-white animate-pulse">
-                            LIVE
-                          </Badge>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <div className="text-slate-400 text-lg mb-2">No live lots at the moment</div>
-                  <div className="text-slate-500 text-sm">Check back soon for new auctions</div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
         {/* Invoices Tab */}
         <TabsContent value="invoices" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Invoices</CardTitle>
+              <CardTitle>Your Invoices</CardTitle>
             </CardHeader>
             <CardContent>
               {invoicesLoading ? (
                 <div className="space-y-4">
-                  {Array.from({ length: 5 }).map((_, i) => (
+                  {Array.from({ length: 3 }).map((_, i) => (
                     <div key={i} className="h-16 bg-slate-200 animate-pulse rounded"></div>
                   ))}
                 </div>
+              ) : invoices?.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-slate-500">No invoices found</p>
+                </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-slate-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                          Invoice #
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                          Lots #
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                          Amount USD
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-slate-200">
-                      {invoices?.map((invoice: any) => (
-                        <InvoiceRow key={invoice.id} invoice={invoice} />
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="space-y-4">
+                  {invoices?.map((invoice: any) => (
+                    <InvoiceRow key={invoice.id} invoice={invoice} />
+                  ))}
                 </div>
               )}
             </CardContent>
