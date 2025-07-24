@@ -1,154 +1,70 @@
-import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { useAuth } from "@/hooks/useAuth";
-import { websocketService } from "@/lib/websocket";
-import { useEffect } from "react";
 
-import AppShell from "@/components/layout/AppShell";
-import Dashboard from "@/pages/Dashboard";
-import LotsAndInvoices from "@/pages/LotsAndInvoices";
-import WalletsAndSettlement from "@/pages/WalletsAndSettlement";
-import FXAndCredit from "@/pages/FXAndCredit";
-import InsuranceHub from "@/pages/InsuranceHub";
-import BoardView from "@/pages/BoardView";
-import InstantCash from "@/pages/InstantCash";
-import StatementsAndReports from "@/pages/StatementsAndReports";
-import Alerts from "@/pages/Alerts";
-import Admin from "@/pages/Admin";
-import AutoListing from "@/pages/AutoListing";
-import Login from "@/pages/Login";
-import Register from "@/pages/Register";
-import ForgotPassword from "@/pages/ForgotPassword";
-import NotFound from "@/pages/not-found";
+import { Toaster } from "@/components/ui/toaster"
+import { Toaster as Sonner } from "@/components/ui/sonner"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { PlatformTourProvider } from "@/contexts/PlatformTourContext"
+import { PaymentInflowsProvider } from "@/contexts/PaymentInflowsContext"
+import Login from "./pages/auth/Login"
+import Dashboard from "./pages/Dashboard"
+import GetStarted from "./pages/GetStarted"
+import Admin from "./pages/Admin"
+import Accounting from "./pages/Accounting"
+import Directory from "./pages/operations/Directory"
+import Statements from "./pages/operations/Statements"
+import LotPool from "./pages/operations/LotPool"
+import BidProcessing from "./pages/operations/BidProcessing"
+import BidDetails from "./pages/operations/BidDetails"
+import TeaWorkflow from "./pages/operations/TeaWorkflow"
+import TradePulse from "./pages/operations/TradePulse"
+import DocumentsCenter from "./pages/operations/DocumentsCenter"
+import Wallets from "./pages/banking/Wallets"
+import Transactions from "./pages/banking/Transactions"
+import Sweeps from "./pages/banking/Sweeps"
+import NotFound from "./pages/NotFound"
+import Layout from "./components/Layout"
 
-function Router() {
-  const { user, isLoading } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2L13.09 7.09L18 8L13.09 8.91L12 14L10.91 8.91L6 8L10.91 7.09L12 2Z"/>
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">iTea Flow</h1>
-          <p className="text-slate-600">powered by Elastic OS</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <Switch>
-        <Route path="/register" component={Register} />
-        <Route path="/forgot-password" component={ForgotPassword} />
-        <Route path="*" component={Login} />
-      </Switch>
-    );
-  }
-
-  // Role-based route filtering
-  const getRoleBasedRoutes = () => {
-    const baseRoutes = [
-      { path: "/", component: Dashboard },
-      { path: "/dashboard", component: Dashboard },
-    ];
-
-    switch (user.role) {
-      case "buyer":
-        return [
-          ...baseRoutes,
-          { path: "/lots", component: LotsAndInvoices },
-          { path: "/wallets", component: WalletsAndSettlement },
-          { path: "/fx-credit", component: FXAndCredit },
-          { path: "/insurance", component: InsuranceHub },
-          { path: "/instant-cash", component: InstantCash },
-          { path: "/reports", component: StatementsAndReports },
-          { path: "/alerts", component: Alerts },
-        ];
-      
-      case "producer":
-        return [
-          ...baseRoutes,
-          { path: "/lots", component: LotsAndInvoices },
-          { path: "/wallets", component: WalletsAndSettlement },
-          { path: "/fx-credit", component: FXAndCredit },
-          { path: "/insurance", component: InsuranceHub },
-          { path: "/auto-listing", component: AutoListing },
-          { path: "/reports", component: StatementsAndReports },
-          { path: "/alerts", component: Alerts },
-        ];
-      
-      case "ktda_ro":
-        return [
-          ...baseRoutes,
-          { path: "/board", component: BoardView },
-          { path: "/reports", component: StatementsAndReports },
-          { path: "/alerts", component: Alerts },
-        ];
-      
-      case "ops_admin":
-        return [
-          ...baseRoutes,
-          { path: "/lots", component: LotsAndInvoices },
-          { path: "/wallets", component: WalletsAndSettlement },
-          { path: "/fx-credit", component: FXAndCredit },
-          { path: "/insurance", component: InsuranceHub },
-          { path: "/board", component: BoardView },
-          { path: "/instant-cash", component: InstantCash },
-          { path: "/reports", component: StatementsAndReports },
-          { path: "/alerts", component: Alerts },
-          { path: "/admin", component: Admin },
-          { path: "/auto-listing", component: AutoListing },
-        ];
-      
-      default:
-        return baseRoutes;
-    }
-  };
-
-  const allowedRoutes = getRoleBasedRoutes();
-
-  return (
-    <AppShell>
-      <Switch>
-        {allowedRoutes.map((route, index) => (
-          <Route 
-            key={index}
-            path={route.path} 
-            component={route.component} 
-          />
-        ))}
-        <Route component={NotFound} />
-      </Switch>
-    </AppShell>
-  );
-}
+const queryClient = new QueryClient()
 
 function App() {
-  useEffect(() => {
-    // Initialize WebSocket connection
-    websocketService.connect();
-    
-    return () => {
-      websocketService.disconnect();
-    };
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Router />
+        <Sonner />
+        <BrowserRouter>
+          <PlatformTourProvider>
+            <PaymentInflowsProvider>
+              <Routes>
+                <Route path="/" element={<Login />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/app" element={<Layout />}>
+                  <Route index element={<Dashboard />} />
+                  <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="get-started" element={<GetStarted />} />
+                  <Route path="admin" element={<Admin />} />
+                  <Route path="accounting" element={<Accounting />} />
+                  <Route path="operations/directory" element={<Directory />} />
+                  <Route path="operations/statements" element={<Statements />} />
+                  <Route path="operations/lot-pool" element={<LotPool />} />
+                  <Route path="operations/bid-processing" element={<BidProcessing />} />
+                  <Route path="operations/bid-processing/:bidId" element={<BidDetails />} />
+                  <Route path="operations/tea-workflow" element={<TeaWorkflow />} />
+                  <Route path="operations/trade-pulse" element={<TradePulse />} />
+                  <Route path="operations/documents-center" element={<DocumentsCenter />} />
+                  <Route path="banking/wallets" element={<Wallets />} />
+                  <Route path="banking/transactions" element={<Transactions />} />
+                  <Route path="banking/sweeps" element={<Sweeps />} />
+                </Route>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </PaymentInflowsProvider>
+          </PlatformTourProvider>
+        </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
-  );
+  )
 }
 
-export default App;
+export default App
