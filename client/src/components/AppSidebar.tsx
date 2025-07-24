@@ -20,6 +20,8 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 
+import { cn } from "@/lib/utils"
+
 const navigationItems = [
   {
     title: "Get Started",
