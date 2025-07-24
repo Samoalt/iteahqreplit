@@ -118,14 +118,13 @@ export function AppSidebar() {
         className="p-6 border-b border-slate-100 sidebar-white-bg"
         style={{ backgroundColor: '#ffffff !important' }}
       >
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-elastic-navy-600 via-elastic-teal-500 to-elastic-green-500"></div>
-            <span className="text-white font-bold text-lg relative z-10">iT</span>
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-teal-500 text-white shadow-lg">
+            <span className="text-sm font-bold">iT</span>
           </div>
-          <div>
-            <h2 className="text-xl font-bold text-slate-900 font-display">iTea HQ</h2>
-            <p className="text-sm text-slate-500 font-medium">Trading Platform</p>
+          <div className="grid flex-1 text-left text-sm leading-tight">
+            <span className="truncate font-semibold">iTea HQ</span>
+            <span className="truncate text-xs">Trading Platform</span>
           </div>
         </div>
       </SidebarHeader>
