@@ -37,13 +37,16 @@ export const lots = pgTable("lots", {
 // Bids table
 export const bids = pgTable("bids", {
   id: serial("id").primaryKey(),
+  bidId: text("bid_id").notNull().unique(),
   lotId: text("lot_id").notNull(),
-  bidderId: integer("bidder_id").notNull(),
-  bidAmount: decimal("bid_amount", { precision: 10, scale: 2 }).notNull(),
+  buyerId: integer("buyer_id").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  status: text("status").notNull().default("pending"), // pending, payment-matching, split-processing, etc.
   fxRate: decimal("fx_rate", { precision: 10, scale: 4 }),
   lockFx: boolean("lock_fx").notNull().default(false),
   isWinning: boolean("is_winning").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 // Invoices table
@@ -332,6 +335,35 @@ export const smsQueue = pgTable("sms_queue", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Audit Logs table
+export const auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  entityType: text("entity_type").notNull(),
+  entityId: text("entity_id").notNull(),
+  action: text("action").notNull(),
+  changes: json("changes"),
+  performedBy: integer("performed_by").notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Entities table for buyers/producers/warehouses
+export const entities = pgTable("entities", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // buyer, producer, warehouse
+  contactPerson: text("contact_person"),
+  email: text("email"),
+  phone: text("phone"),
+  location: text("location"),
+  status: text("status").notNull().default("active"), // active, inactive
+  bankingDetails: json("banking_details"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  createdBy: integer("created_by").notNull(),
+});
+
 // Auto Listing Rules table
 export const autoListingRules = pgTable("auto_listing_rules", {
   id: text("id").primaryKey(),
@@ -365,9 +397,15 @@ export const insertFactoryFlagSchema = createInsertSchema(factoryFlags).omit({ i
 export const insertPaymentMethodSchema = createInsertSchema(paymentMethods).omit({ id: true, createdAt: true });
 export const insertOtpSessionSchema = createInsertSchema(otpSessions).omit({ id: true, createdAt: true });
 export const insertAutoListingRuleSchema = createInsertSchema(autoListingRules).omit({ createdAt: true });
+export const insertEntitySchema = createInsertSchema(entities).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({ id: true, createdAt: true });
 
 // Types
 export type User = typeof users.$inferSelect;
+export type Entity = typeof entities.$inferSelect;
+export type InsertEntity = z.infer<typeof insertEntitySchema>;
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Lot = typeof lots.$inferSelect;
 export type InsertLot = z.infer<typeof insertLotSchema>;
