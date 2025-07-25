@@ -1,4 +1,3 @@
-
 import { db } from "../db";
 import { paymentInflows, bids, entities, auditLogs } from "@shared/schema";
 import { eq, and, isNull, desc } from "drizzle-orm";
@@ -24,7 +23,7 @@ export class PaymentMatcher {
 
     for (const payment of unmatchedPayments) {
       const matches = await this.findMatches(payment);
-      
+
       // Auto-match if confidence is high and score > 0.8
       const bestMatch = matches[0];
       if (bestMatch && bestMatch.score > 0.8 && bestMatch.confidence === 'high') {
@@ -47,7 +46,7 @@ export class PaymentMatcher {
 
     for (const bid of pendingBids) {
       const score = await this.calculateMatchScore(payment, bid);
-      
+
       if (score > 0.3) { // Only consider matches above 30%
         matches.push({
           paymentId: payment.id,
@@ -82,7 +81,7 @@ export class PaymentMatcher {
         .select()
         .from(entities)
         .where(eq(entities.id, bid.buyerId));
-      
+
       if (buyer) {
         const nameScore = this.calculateStringMatch(
           payment.payerName.toLowerCase(),
@@ -126,15 +125,15 @@ export class PaymentMatcher {
 
   private levenshteinDistance(str1: string, str2: string): number {
     const matrix = [];
-    
+
     for (let i = 0; i <= str2.length; i++) {
       matrix[i] = [i];
     }
-    
+
     for (let j = 0; j <= str1.length; j++) {
       matrix[0][j] = j;
     }
-    
+
     for (let i = 1; i <= str2.length; i++) {
       for (let j = 1; j <= str1.length; j++) {
         if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
@@ -148,7 +147,7 @@ export class PaymentMatcher {
         }
       }
     }
-    
+
     return matrix[str2.length][str1.length];
   }
 
@@ -160,18 +159,18 @@ export class PaymentMatcher {
 
   private getMatchedFields(payment: any, bid: any): string[] {
     const fields = [];
-    
+
     // Check which fields contributed to the match
     const amountDiff = Math.abs(parseFloat(payment.amount) - parseFloat(bid.amount));
     if (amountDiff / parseFloat(bid.amount) < 0.05) { // Within 5%
       fields.push('amount');
     }
-    
+
     if (payment.reference && bid.bidId && 
         payment.reference.toLowerCase().includes(bid.bidId.toLowerCase())) {
       fields.push('reference');
     }
-    
+
     return fields;
   }
 
@@ -210,7 +209,7 @@ export class PaymentMatcher {
   async manualMatch(paymentId: number, bidId: string, userId: number, notes?: string) {
     const score = 1.0; // Manual matches get perfect score
     await this.executeMatch(paymentId, bidId, score, 'manual', userId);
-    
+
     if (notes) {
       await db.insert(auditLogs).values({
         entityType: 'payment_matching',
