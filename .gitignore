@@ -4,3 +4,63 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Build outputs
+dist/
+build/
+.next/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Temporary folders
+tmp/
+temp/
+
+# Replit specific
+.replit
+replit.nix
+
+# Database
+*.db
+*.sqlite
+
+# Generated files
+server/public/
+vite.config.ts.*
+*.tar.gz
+
+# Package lock files (keep npm's, ignore others)
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
