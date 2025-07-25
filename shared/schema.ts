@@ -1,4 +1,17 @@
+
 import { pgTable, text, serial, integer, timestamp, json, boolean, decimal } from "drizzle-orm/pg-core";
+
+// Users table
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull().unique(),
+  phone: text("phone"),
+  role: text("role").notNull().default("user"),
+  status: text("status").notNull().default("active"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
 
 // Core entities
 export const entities = pgTable("entities", {
@@ -46,14 +59,34 @@ export const auditLogs = pgTable("audit_logs", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Notifications
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  type: text("type").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  priority: text("priority").notNull().default("medium"),
+  actionUrl: text("action_url"),
+  metadata: json("metadata"),
+  readAt: timestamp("read_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Email queue for notifications
 export const emailQueue = pgTable("email_queue", {
   id: serial("id").primaryKey(),
   to: text("to").notNull(),
   subject: text("subject").notNull(),
   htmlBody: text("html_body").notNull(),
+  textBody: text("text_body"),
+  attachments: json("attachments").default([]),
+  priority: text("priority").notNull().default("normal"),
   status: text("status").notNull().default("queued"),
   attempts: integer("attempts").notNull().default(0),
+  scheduledFor: timestamp("scheduled_for"),
+  sentAt: timestamp("sent_at"),
+  lastError: text("last_error"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -62,8 +95,52 @@ export const smsQueue = pgTable("sms_queue", {
   id: serial("id").primaryKey(),
   to: text("to").notNull(),
   message: text("message").notNull(),
+  priority: text("priority").notNull().default("normal"),
   status: text("status").notNull().default("queued"),
   attempts: integer("attempts").notNull().default(0),
+  scheduledFor: timestamp("scheduled_for"),
+  sentAt: timestamp("sent_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Workflow definitions
+export const workflowDefinitions = pgTable("workflow_definitions", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  type: text("type").notNull(),
+  description: text("description"),
+  stages: json("stages").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Workflow instances
+export const workflowInstances = pgTable("workflow_instances", {
+  id: serial("id").primaryKey(),
+  workflowDefinitionId: integer("workflow_definition_id").references(() => workflowDefinitions.id).notNull(),
+  entityType: text("entity_type").notNull(),
+  entityId: text("entity_id").notNull(),
+  currentStage: text("current_stage"),
+  status: text("status").notNull().default("active"),
+  data: json("data"),
+  startedBy: integer("started_by").references(() => users.id),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Approval workflows
+export const approvalWorkflows = pgTable("approval_workflows", {
+  id: serial("id").primaryKey(),
+  workflowInstanceId: integer("workflow_instance_id").references(() => workflowInstances.id).notNull(),
+  stage: text("stage").notNull(),
+  approverIds: json("approver_ids").notNull(),
+  status: text("status").notNull().default("pending"),
+  approvedBy: integer("approved_by").references(() => users.id),
+  rejectedBy: integer("rejected_by").references(() => users.id),
+  comments: text("comments"),
+  approvedAt: timestamp("approved_at"),
+  rejectedAt: timestamp("rejected_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

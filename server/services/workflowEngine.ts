@@ -1,6 +1,6 @@
 
 import { db } from "../db";
-import { bids, paymentInflows, auditLogs } from "@shared/schema";
+import { bids, paymentInflows, auditLogs, workflowInstances, workflowDefinitions, approvalWorkflows } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 
 export interface WorkflowStage {
