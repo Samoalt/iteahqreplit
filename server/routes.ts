@@ -3,6 +3,10 @@ import { createServer, type Server } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { storage } from "./storage";
 import { insertBidSchema, insertInstantCashAdvanceSchema, insertFxLockSchema, insertInsurancePolicySchema } from "@shared/schema";
+import { workflowEngine } from "./services/workflowEngine";
+import { paymentMatcher } from "./services/paymentMatching";
+import { notificationService } from "./services/notificationService";
+import { fileStorage } from "./services/fileStorage";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -17,7 +21,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/auth/login", async (req, res) => {
     try {
       const { email, password } = req.body;
-      
+
       // Demo authentication - in production use proper password hashing
       const demoUsers = [
         { id: 1, email: "producer@iteaflow.com", password: "demo123", role: "producer", firstName: "Michael", lastName: "Wambugu", username: "michael.wambugu" },
@@ -25,9 +29,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { id: 3, email: "board@ktda.com", password: "demo123", role: "ktda_ro", firstName: "David", lastName: "Kimani", username: "david.kimani" },
         { id: 4, email: "admin@iteaflow.com", password: "demo123", role: "ops_admin", firstName: "Admin", lastName: "User", username: "admin.user" }
       ];
-      
+
       const user = demoUsers.find(u => u.email === email && u.password === password);
-      
+
       if (user) {
         const token = `demo_token_${user.id}`;
         res.json({
@@ -56,7 +60,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/auth/signup", async (req, res) => {
     try {
       const { email, password, role, legalName, country, kraPin, phone, currency, walletType, bankIban } = req.body;
-      
+
       res.json({
         message: "Registration successful",
         user: {
@@ -76,7 +80,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/auth/forgot", async (req, res) => {
     try {
       const { email } = req.body;
-      
+
       // Simulate sending reset email
       res.json({ message: "Reset email sent" });
     } catch (error) {
@@ -87,7 +91,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/auth/me", async (req, res) => {
     try {
       const token = req.headers.authorization?.replace('Bearer ', '');
-      
+
       if (token && token.startsWith('demo_token_')) {
         const userId = parseInt(token.replace('demo_token_', ''));
         const demoUsers = [
@@ -96,7 +100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           { id: 3, email: "board@ktda.com", role: "ktda_ro", firstName: "David", lastName: "Kimani", username: "david.kimani" },
           { id: 4, email: "admin@iteaflow.com", role: "ops_admin", firstName: "Admin", lastName: "User", username: "admin.user" }
         ];
-        
+
         const user = demoUsers.find(u => u.id === userId);
         if (user) {
           res.json({
@@ -120,7 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // WebSocket connection handling
   io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
-    
+
     socket.on('disconnect', () => {
       console.log('Client disconnected:', socket.id);
     });
@@ -146,11 +150,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username, password } = req.body;
       const user = await storage.getUserByUsername(username);
-      
+
       if (!user || user.password !== password) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
-      
+
       res.json({ 
         user: { 
           id: user.id, 
@@ -217,9 +221,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bidderId: 1, // Demo user ID
         ...req.body
       });
-      
+
       const bid = await storage.createBid(bidData);
-      
+
       // Create activity
       await storage.createActivity({
         userId: bidData.bidderId,
@@ -233,7 +237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lotId: req.params.lotId,
         bid: bid
       });
-      
+
       res.json(bid);
     } catch (error) {
       res.status(400).json({ message: "Failed to place bid" });
@@ -263,11 +267,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/create-payment-intent", async (req, res) => {
     try {
       const { amount, invoiceId } = req.body;
-      
+
       // In a real implementation, this would create a Stripe payment intent
       // For now, return a mock client secret for demonstration
       const clientSecret = `pi_mock_${Date.now()}_secret`;
-      
+
       res.json({ 
         clientSecret,
         amount,
@@ -281,15 +285,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/invoices/:invoiceId/pay", async (req, res) => {
     try {
       const { method } = req.body;
-      
+
       if (method === "stripe") {
         // Handle Stripe payment - set to clearing first
         await storage.updateInvoiceStatus(req.params.invoiceId, "in_clearing", method);
-        
+
         // Simulate Stripe processing delay
         setTimeout(async () => {
           await storage.updateInvoiceStatus(req.params.invoiceId, "paid", method);
-          
+
           // Create activity for successful payment
           await storage.createActivity({
             userId: 1,
@@ -304,12 +308,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             method: "stripe"
           });
         }, 3000); // 3 second processing delay
-        
+
         res.json({ message: "Payment processing initiated" });
       } else {
         // Handle wallet and wire payments immediately
         await storage.updateInvoiceStatus(req.params.invoiceId, "paid", method);
-        
+
         // Create activity
         await storage.createActivity({
           userId: 1,
@@ -323,7 +327,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           invoiceId: req.params.invoiceId,
           method: method
         });
-        
+
         res.json({ message: "Payment processed successfully" });
       }
     } catch (error) {
@@ -350,9 +354,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "active",
         ...req.body
       });
-      
+
       const advance = await storage.createInstantCashAdvance(advanceData);
-      
+
       // Create activity
       await storage.createActivity({
         userId: advanceData.producerId,
@@ -360,7 +364,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: `Instant cash advance of $${advanceData.advanceAmount} approved`,
         metadata: { lotId: advanceData.lotId, amount: advanceData.advanceAmount }
       });
-      
+
       res.json(advance);
     } catch (error) {
       res.status(400).json({ message: "Failed to process cash advance" });
@@ -375,9 +379,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "active",
         ...req.body
       });
-      
+
       const fxLock = await storage.createFxLock(fxLockData);
-      
+
       // Create activity
       await storage.createActivity({
         userId: fxLockData.userId,
@@ -385,7 +389,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: `FX rate locked at ${fxLockData.lockedRate} KES/USD`,
         metadata: { rate: fxLockData.lockedRate, amount: fxLockData.amountUSD }
       });
-      
+
       res.json(fxLock);
     } catch (error) {
       res.status(400).json({ message: "Failed to lock FX rate" });
@@ -405,14 +409,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/insurance/quote", async (req, res) => {
     try {
       const { type, coverageAmount } = req.body;
-      
+
       // Calculate premium based on type
       let premiumRate = 0.025; // 2.5% default
       if (type === "quality") premiumRate = 0.018;
       if (type === "marine") premiumRate = 0.005;
-      
+
       const premiumAmount = (parseFloat(coverageAmount) * premiumRate).toFixed(2);
-      
+
       res.json({
         type,
         coverageAmount,
@@ -433,9 +437,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "bound",
         ...req.body
       });
-      
+
       const policy = await storage.createInsurancePolicy(policyData);
-      
+
       // Create activity
       await storage.createActivity({
         userId: policyData.userId,
@@ -443,7 +447,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: `${policyData.type} insurance policy purchased`,
         metadata: { policyNumber: policyData.policyNumber, type: policyData.type }
       });
-      
+
       res.json(policy);
     } catch (error) {
       res.status(400).json({ message: "Failed to purchase insurance" });
@@ -593,7 +597,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const baseRate = 130.45;
       const variation = (Math.random() - 0.5) * 0.5;
       const currentRate = (baseRate + variation).toFixed(4);
-      
+
       res.json({
         rate: currentRate,
         currency: "KES/USD",
@@ -642,5 +646,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  return httpServer;
+  // Workflow Management
+  app.post("/api/workflows/start", async (req, res) => {
+    try {
+      const { workflowType, entityType, entityId, data } = req.body;
+      const instance = await workflowEngine.startWorkflow(workflowType, entityType, entityId, data);
+      res.json(instance);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Payment Matching
+  app.post("/api/payments/run-matching", async (req, res) => {
+    try {
+      const results = await paymentMatcher.runAutomaticMatching();
+      res.json({ matches: results.length, results });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/payments/:paymentId/match/:bidId", async (req, res) => {
+    try {
+      const { paymentId, bidId } = req.params;
+      const { userId, notes } = req.body;
+      await paymentMatcher.manualMatch(parseInt(paymentId), bidId, userId, notes);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/payments/:paymentId/matches", async (req, res) => {
+    try {
+      const { paymentId } = req.params;
+      const [payment] = await db.select().from(paymentInflows).where(eq(paymentInflows.id, parseInt(paymentId)));
+      if (!payment) {
+        return res.status(404).json({ error: "Payment not found" });
+      }
+      const matches = await paymentMatcher.findMatches(payment);
+      res.json(matches);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // File Management
+  app.post("/api/files/upload", async (req, res) => {
+    try {
+      // In a real implementation, you'd handle multipart file upload
+      const { filename, mimeType, entityType, entityId, documentType, userId } = req.body;
+      const fileBuffer = Buffer.from(req.body.data, 'base64');
+
+      const document = await fileStorage.uploadFile(
+        fileBuffer, filename, mimeType, entityType, entityId, documentType, userId
+      );
+      res.json(document);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/files/:documentId/download", async (req, res) => {
+    try {
+      const { documentId } = req.params;
+      const { data, metadata } = await fileStorage.downloadFile(documentId);
+
+      res.setHeader('Content-Type', metadata.mimeType || 'application/octet-stream');
+      res.setHeader('Content-Disposition', `attachment; filename="${metadata.name}"`);
+      res.send(Buffer.from(data));
+    } catch (error: any) {
+      res.status(404).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/documents/e-slip/:bidId", async (req, res) => {
+    try {
+      const { bidId } = req.params;
+      const bidData = req.body;
+      const documentId = await fileStorage.generateESlip(bidId, bidData);
+      res.json({ documentId });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Notifications
+  app.post("/api/notifications/send", async (req, res) => {
+    try {
+      const notification = await notificationService.createNotification(req.body);
+      res.json(notification);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/notifications/email", async (req, res) => {
+    try {
+      const { to, templateName, data, attachments, priority, scheduledFor } = req.body;
+      const email = await notificationService.sendEmail(to, templateName, data, attachments, priority, scheduledFor);
+      res.json(email);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Background job to process email queue
+  app.post("/api/notifications/process-queue", async (req, res) => {
+    try {
+      await notificationService.processEmailQueue();
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Start the server
+  const server = createServer(app);
+  return server;
 }

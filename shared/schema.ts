@@ -208,6 +208,131 @@ export const otpSessions = pgTable("otp_sessions", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Workflow Engine tables
+export const workflowDefinitions = pgTable("workflow_definitions", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // bid_processing, payment_approval, etc.
+  stages: json("stages").notNull(), // Array of stage definitions
+  rules: json("rules"), // Business rules and conditions
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const workflowInstances = pgTable("workflow_instances", {
+  id: serial("id").primaryKey(),
+  workflowId: integer("workflow_id").notNull(),
+  entityType: text("entity_type").notNull(), // bid, payment, etc.
+  entityId: text("entity_id").notNull(),
+  currentStage: text("current_stage").notNull(),
+  status: text("status").notNull().default("active"), // active, completed, failed, cancelled
+  data: json("data"), // Workflow-specific data
+  startedAt: timestamp("started_at").notNull().defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
+export const approvalWorkflows = pgTable("approval_workflows", {
+  id: serial("id").primaryKey(),
+  entityType: text("entity_type").notNull(),
+  entityId: text("entity_id").notNull(),
+  approvalType: text("approval_type").notNull(), // payout, split, payment, etc.
+  requiredApprovers: json("required_approvers").notNull(), // Array of user IDs or roles
+  currentLevel: integer("current_level").notNull().default(1),
+  totalLevels: integer("total_levels").notNull(),
+  status: text("status").notNull().default("pending"), // pending, approved, rejected, cancelled
+  amountThreshold: decimal("amount_threshold", { precision: 15, scale: 2 }),
+  initiatedBy: integer("initiated_by").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const approvalActions = pgTable("approval_actions", {
+  id: serial("id").primaryKey(),
+  workflowId: integer("workflow_id").notNull(),
+  approverId: integer("approver_id").notNull(),
+  action: text("action").notNull(), // approve, reject, request_changes
+  level: integer("level").notNull(),
+  comments: text("comments"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Payment Matching Engine
+export const paymentInflows = pgTable("payment_inflows", {
+  id: serial("id").primaryKey(),
+  reference: text("reference").notNull(),
+  amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+  currency: text("currency").notNull(),
+  payerName: text("payer_name"),
+  payerAccount: text("payer_account"),
+  bankReference: text("bank_reference"),
+  receivedDate: timestamp("received_date").notNull(),
+  matchedBidId: text("matched_bid_id"),
+  matchScore: decimal("match_score", { precision: 5, scale: 2 }),
+  matchStatus: text("match_status").notNull().default("unmatched"), // unmatched, auto_matched, manual_matched, disputed
+  matchedBy: integer("matched_by"),
+  matchedAt: timestamp("matched_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const paymentMatchingRules = pgTable("payment_matching_rules", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  priority: integer("priority").notNull().default(1),
+  conditions: json("conditions").notNull(), // Match conditions
+  actions: json("actions").notNull(), // Actions to perform on match
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Document Management
+export const documents = pgTable("documents", {
+  id: serial("id").primaryKey(),
+  documentId: text("document_id").notNull().unique(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // e_slip, invoice, certificate, contract, etc.
+  entityType: text("entity_type").notNull(), // bid, lot, payment, etc.
+  entityId: text("entity_id").notNull(),
+  fileUrl: text("file_url").notNull(),
+  fileSize: integer("file_size"),
+  mimeType: text("mime_type"),
+  version: integer("version").notNull().default(1),
+  status: text("status").notNull().default("draft"), // draft, sent, signed, archived
+  generatedBy: integer("generated_by"),
+  metadata: json("metadata"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const emailQueue = pgTable("email_queue", {
+  id: serial("id").primaryKey(),
+  to: text("to").notNull(),
+  cc: text("cc"),
+  bcc: text("bcc"),
+  subject: text("subject").notNull(),
+  htmlBody: text("html_body").notNull(),
+  textBody: text("text_body"),
+  attachments: json("attachments"), // Array of document IDs
+  priority: text("priority").notNull().default("normal"), // low, normal, high
+  status: text("status").notNull().default("queued"), // queued, sent, failed, retrying
+  attempts: integer("attempts").notNull().default(0),
+  lastError: text("last_error"),
+  scheduledFor: timestamp("scheduled_for"),
+  sentAt: timestamp("sent_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const smsQueue = pgTable("sms_queue", {
+  id: serial("id").primaryKey(),
+  to: text("to").notNull(),
+  message: text("message").notNull(),
+  priority: text("priority").notNull().default("normal"),
+  status: text("status").notNull().default("queued"),
+  attempts: integer("attempts").notNull().default(0),
+  lastError: text("last_error"),
+  scheduledFor: timestamp("scheduled_for"),
+  sentAt: timestamp("sent_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Auto Listing Rules table
 export const autoListingRules = pgTable("auto_listing_rules", {
   id: text("id").primaryKey(),
   userId: integer("user_id").notNull(),
