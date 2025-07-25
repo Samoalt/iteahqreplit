@@ -1,16 +1,5 @@
 import {
-  users, lots, bids, invoices, wallets, instantCashAdvances,
-  fxLocks, insurancePolicies, wireTransfers, activities, notifications,
-  lenderPools, esgMetrics, factoryFlags, paymentMethods, otpSessions, autoListingRules,
-  type User, type InsertUser, type Lot, type InsertLot,
-  type Bid, type InsertBid, type Invoice, type InsertInvoice,
-  type Wallet, type InsertWallet, type InstantCashAdvance, type InsertInstantCashAdvance,
-  type FxLock, type InsertFxLock, type InsurancePolicy, type InsertInsurancePolicy,
-  type WireTransfer, type InsertWireTransfer, type Activity, type InsertActivity,
-  type Notification, type InsertNotification, type LenderPool, type InsertLenderPool,
-  type EsgMetric, type InsertEsgMetric, type FactoryFlag, type InsertFactoryFlag,
-  type PaymentMethod, type InsertPaymentMethod, type OtpSession, type InsertOtpSession,
-  type AutoListingRule, type InsertAutoListingRule
+  entities, paymentInflows, bids, auditLogs, emailQueue, smsQueue, documents
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
