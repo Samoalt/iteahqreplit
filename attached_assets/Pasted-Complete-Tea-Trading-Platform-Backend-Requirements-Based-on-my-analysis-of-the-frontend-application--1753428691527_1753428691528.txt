@@ -1,0 +1,377 @@
+Complete Tea Trading Platform Backend Requirements
+Based on my analysis of the frontend application, here's a comprehensive breakdown for backend development:
+1. Authentication & User Management
+Auth Flow:
+Login System: Email/password authentication with OTP verification
+Forgot Password: Multi-step flow (email → OTP → reset password → success)
+Session Management: JWT-based authentication with refresh tokens
+User Roles: Admin, Approver, Initiator, Viewer with role-based permissions
+User Management:
+User CRUD operations
+Role assignment and permission management
+Activity logging and audit trails
+User profile management with contact details
+
+2. Core Business Entities
+Entities Directory:
+Entity Table:
+- id, name, type (buyer/producer/warehouse), contact_person
+- email, phone, location, status (active/inactive)
+- created_at, updated_at, created_by
+- banking_details (separate table)
+- activity_logs (relationship)
+Lot Pool Management:
+Lots Table:
+- id, lot_number, factory_id, tea_type, grade
+- quantity_kg, quality_details, packaging_type
+- auction_date, warehouse_location, status
+- created_at, updated_at
+Bid Management:
+Bids Table:
+- id, buyer_id, lot_id, amount, quantity, price_per_kg
+- status (bid-intake, e-slip-sent, payment-matching, split-processing, payout-approval, tea-release)
+- broker, date, notes, created_by
+- Enhanced fields: tea_type, origin_factory, packaging_type
+
+3. Tea Workflow System
+6-Stage Workflow Pipeline:
+Stage 1: Bid Intake
+Accept bids from buyers
+Validate bid data (buyer verification, lot availability)
+Initial compliance checks
+Auto-assign unique bid IDs
+Stage 2: E-Slip Generation & Sending
+Generate PDF e-slips with lot details
+Email delivery to buyers
+Track delivery status and buyer acknowledgment
+Store e-slip documents in file system
+Stage 3: Payment Matching
+Payment Inflows: Bank payment imports
+Auto-matching algorithm: Match payments to bids by amount, buyer name, reference
+Manual matching interface: For unmatched payments
+Payment confirmation workflow
+Stage 4: Split Processing
+Multi-beneficiary splits: Factory owners, KTDA, brokers
+Split rules engine: Percentage-based or fixed amount splits
+Bulk split processing: Handle multiple bids simultaneously
+Split approval workflow
+Stage 5: Payout Approval
+Approval workflow: Multi-level approvals based on amount thresholds
+Payout instruction generation: PDF and Excel exports
+Approval notifications and tracking
+Stage 6: Tea Release
+Release authorization: Final approval for tea delivery
+Delivery tracking: Reference numbers and buyer confirmation
+Certificate generation: Release certificates and delivery notes
+
+4. Banking & Payments System
+Multi-Currency Wallet System:
+Wallets Table:
+- id, user_id, currency (KES/USD/EUR), balance
+- status (active/inactive), last_activity
+- transaction_count, created_at
+
+Transactions Table:
+- id, wallet_id, type (debit/credit), amount, currency
+- reference, description, counterparty
+- related_bid_id, related_lot_id, status
+- created_at, created_by
+Payment Processing:
+Send Payments: To factories, KTDA, brokers with directory integration
+Receive Payments: From buyers with automatic matching
+Payment Reconciliation: Link payments to specific lots/bids/releases
+Failed Payment Handling: Retry logic and manual intervention
+Sweeps Management:
+Automated Sweeps: Rule-based fund transfers between wallets
+Manual Sweeps: Ad-hoc transfers with approval workflow
+Sweep Scheduling: Time-based and event-triggered sweeps
+
+5. Document Management
+Document Types:
+E-Slips: Auto-generated PDF invoices
+Split Instructions: Beneficiary payout breakdowns
+Release Certificates: Tea delivery authorization
+Compliance Documents: Contracts, certificates, delivery notes
+Payment Proofs: Bank statements, M-Pesa confirmations
+File Storage:
+Cloud storage integration (AWS S3/Google Cloud)
+Document versioning and audit trails
+Access control based on user roles
+Bulk document operations
+
+6. Financial & Accounting Integration
+ERP Synchronization:
+QuickBooks Integration: Export transactions and invoices
+Xero Integration: Sync financial data
+Custom ERP APIs: Flexible integration points
+Financial Reporting:
+P&L Reports: Revenue, expenses, profit margins
+Balance Sheets: Assets, liabilities, equity
+Cash Flow Statements: Operating, investing, financing activities
+Tax Reports: VAT, income tax calculations
+Journal Entries:
+Auto-generated accounting entries for all transactions
+Manual journal entry creation and approval
+Audit trails for all financial modifications
+
+7. Operations & Analytics
+Dashboard Analytics:
+Real-time Metrics: Trading volume, active lots, bid counts
+Performance Tracking: Factory performance, buyer activity
+Financial Summaries: Revenue, pending payments, profit margins
+Workflow Status: Bids by stage, processing bottlenecks
+Trade Pulse Analytics:
+Market Trends: Price movements, volume analysis
+Factory Performance: Production and sales metrics
+Buyer Patterns: Purchase history and preferences
+Seasonal Analysis: Monthly/quarterly trends
+Business Intelligence:
+Data Warehouse: Historical data aggregation
+Custom Reports: User-defined analytical reports
+Export Capabilities: CSV, Excel, PDF formats
+Scheduled Reports: Automated delivery via email
+
+8. Advanced Features
+Workflow Automation:
+Status Transition Rules: Automated progression through workflow stages
+Validation Engine: Business rule enforcement
+Notification System: Email/SMS alerts for stage transitions
+Approval Workflows: Multi-level approval chains
+Audit & Compliance:
+Complete Audit Trails: Who, what, when for all actions
+Compliance Monitoring: Regulatory requirement tracking
+Data Retention Policies: Automated archiving and cleanup
+Security Logging: Access logs and security events
+Integration APIs:
+Banking APIs: Direct bank integration for payment processing
+M-Pesa Integration: Mobile money payment processing
+Third-party ERP: Flexible API endpoints for external systems
+Webhook Support: Real-time notifications to external systems
+
+9. Database Schema Summary
+Core Tables:
+users - Authentication and user management
+entities - Directory of buyers, producers, warehouses
+lots - Tea lot inventory and details
+bids - Bid submissions and processing
+payments - Payment transactions and matching
+wallets - Multi-currency wallet system
+documents - File storage and management
+audit_logs - Complete system audit trail
+workflow_states - Bid status tracking
+split_rules - Payment distribution rules
+Relationship Mappings:
+Bids → Lots (many-to-one)
+Bids → Payments (one-to-many)
+Entities → Banking Details (one-to-many)
+Users → Roles → Permissions (many-to-many)
+Transactions → Wallets → Users
+
+10. Technical Requirements
+API Specifications:
+RESTful API design with OpenAPI documentation
+JWT-based authentication
+Rate limiting and throttling
+Comprehensive error handling
+API versioning strategy
+Performance Requirements:
+Sub-second response times for critical operations
+Support for concurrent users (100+ simultaneous)
+Bulk processing capabilities (1000+ bids)
+Real-time updates via WebSockets
+Security Requirements:
+Role-based access control (RBAC)
+Data encryption at rest and in transit
+Audit logging for all sensitive operations
+Secure file upload and storage
+Payment data compliance (PCI DSS considerations)
+This comprehensive breakdown covers all the functionality visible in the frontend application and provides the necessary backend architecture to support a full-featured tea trading platform.
+Complete Tea Trading Platform Backend Requirements
+Based on my analysis of the frontend application, here's a comprehensive breakdown for backend development:
+1. Authentication & User Management
+Auth Flow:
+Login System: Email/password authentication with OTP verification
+Forgot Password: Multi-step flow (email → OTP → reset password → success)
+Session Management: JWT-based authentication with refresh tokens
+User Roles: Admin, Approver, Initiator, Viewer with role-based permissions
+User Management:
+User CRUD operations
+Role assignment and permission management
+Activity logging and audit trails
+User profile management with contact details
+
+2. Core Business Entities
+Entities Directory:
+Entity Table:
+- id, name, type (buyer/producer/warehouse), contact_person
+- email, phone, location, status (active/inactive)
+- created_at, updated_at, created_by
+- banking_details (separate table)
+- activity_logs (relationship)
+Lot Pool Management:
+Lots Table:
+- id, lot_number, factory_id, tea_type, grade
+- quantity_kg, quality_details, packaging_type
+- auction_date, warehouse_location, status
+- created_at, updated_at
+Bid Management:
+Bids Table:
+- id, buyer_id, lot_id, amount, quantity, price_per_kg
+- status (bid-intake, e-slip-sent, payment-matching, split-processing, payout-approval, tea-release)
+- broker, date, notes, created_by
+- Enhanced fields: tea_type, origin_factory, packaging_type
+
+3. Tea Workflow System
+6-Stage Workflow Pipeline:
+Stage 1: Bid Intake
+Accept bids from buyers
+Validate bid data (buyer verification, lot availability)
+Initial compliance checks
+Auto-assign unique bid IDs
+Stage 2: E-Slip Generation & Sending
+Generate PDF e-slips with lot details
+Email delivery to buyers
+Track delivery status and buyer acknowledgment
+Store e-slip documents in file system
+Stage 3: Payment Matching
+Payment Inflows: Bank payment imports
+Auto-matching algorithm: Match payments to bids by amount, buyer name, reference
+Manual matching interface: For unmatched payments
+Payment confirmation workflow
+Stage 4: Split Processing
+Multi-beneficiary splits: Factory owners, KTDA, brokers
+Split rules engine: Percentage-based or fixed amount splits
+Bulk split processing: Handle multiple bids simultaneously
+Split approval workflow
+Stage 5: Payout Approval
+Approval workflow: Multi-level approvals based on amount thresholds
+Payout instruction generation: PDF and Excel exports
+Approval notifications and tracking
+Stage 6: Tea Release
+Release authorization: Final approval for tea delivery
+Delivery tracking: Reference numbers and buyer confirmation
+Certificate generation: Release certificates and delivery notes
+
+4. Banking & Payments System
+Multi-Currency Wallet System:
+Wallets Table:
+- id, user_id, currency (KES/USD/EUR), balance
+- status (active/inactive), last_activity
+- transaction_count, created_at
+
+Transactions Table:
+- id, wallet_id, type (debit/credit), amount, currency
+- reference, description, counterparty
+- related_bid_id, related_lot_id, status
+- created_at, created_by
+Payment Processing:
+Send Payments: To factories, KTDA, brokers with directory integration
+Receive Payments: From buyers with automatic matching
+Payment Reconciliation: Link payments to specific lots/bids/releases
+Failed Payment Handling: Retry logic and manual intervention
+Sweeps Management:
+Automated Sweeps: Rule-based fund transfers between wallets
+Manual Sweeps: Ad-hoc transfers with approval workflow
+Sweep Scheduling: Time-based and event-triggered sweeps
+
+5. Document Management
+Document Types:
+E-Slips: Auto-generated PDF invoices
+Split Instructions: Beneficiary payout breakdowns
+Release Certificates: Tea delivery authorization
+Compliance Documents: Contracts, certificates, delivery notes
+Payment Proofs: Bank statements, M-Pesa confirmations
+File Storage:
+Cloud storage integration (AWS S3/Google Cloud)
+Document versioning and audit trails
+Access control based on user roles
+Bulk document operations
+
+6. Financial & Accounting Integration
+ERP Synchronization:
+QuickBooks Integration: Export transactions and invoices
+Xero Integration: Sync financial data
+Custom ERP APIs: Flexible integration points
+Financial Reporting:
+P&L Reports: Revenue, expenses, profit margins
+Balance Sheets: Assets, liabilities, equity
+Cash Flow Statements: Operating, investing, financing activities
+Tax Reports: VAT, income tax calculations
+Journal Entries:
+Auto-generated accounting entries for all transactions
+Manual journal entry creation and approval
+Audit trails for all financial modifications
+
+7. Operations & Analytics
+Dashboard Analytics:
+Real-time Metrics: Trading volume, active lots, bid counts
+Performance Tracking: Factory performance, buyer activity
+Financial Summaries: Revenue, pending payments, profit margins
+Workflow Status: Bids by stage, processing bottlenecks
+Trade Pulse Analytics:
+Market Trends: Price movements, volume analysis
+Factory Performance: Production and sales metrics
+Buyer Patterns: Purchase history and preferences
+Seasonal Analysis: Monthly/quarterly trends
+Business Intelligence:
+Data Warehouse: Historical data aggregation
+Custom Reports: User-defined analytical reports
+Export Capabilities: CSV, Excel, PDF formats
+Scheduled Reports: Automated delivery via email
+
+8. Advanced Features
+Workflow Automation:
+Status Transition Rules: Automated progression through workflow stages
+Validation Engine: Business rule enforcement
+Notification System: Email/SMS alerts for stage transitions
+Approval Workflows: Multi-level approval chains
+Audit & Compliance:
+Complete Audit Trails: Who, what, when for all actions
+Compliance Monitoring: Regulatory requirement tracking
+Data Retention Policies: Automated archiving and cleanup
+Security Logging: Access logs and security events
+Integration APIs:
+Banking APIs: Direct bank integration for payment processing
+M-Pesa Integration: Mobile money payment processing
+Third-party ERP: Flexible API endpoints for external systems
+Webhook Support: Real-time notifications to external systems
+
+9. Database Schema Summary
+Core Tables:
+users - Authentication and user management
+entities - Directory of buyers, producers, warehouses
+lots - Tea lot inventory and details
+bids - Bid submissions and processing
+payments - Payment transactions and matching
+wallets - Multi-currency wallet system
+documents - File storage and management
+audit_logs - Complete system audit trail
+workflow_states - Bid status tracking
+split_rules - Payment distribution rules
+Relationship Mappings:
+Bids → Lots (many-to-one)
+Bids → Payments (one-to-many)
+Entities → Banking Details (one-to-many)
+Users → Roles → Permissions (many-to-many)
+Transactions → Wallets → Users
+
+10. Technical Requirements
+API Specifications:
+RESTful API design with OpenAPI documentation
+JWT-based authentication
+Rate limiting and throttling
+Comprehensive error handling
+API versioning strategy
+Performance Requirements:
+Sub-second response times for critical operations
+Support for concurrent users (100+ simultaneous)
+Bulk processing capabilities (1000+ bids)
+Real-time updates via WebSockets
+Security Requirements:
+Role-based access control (RBAC)
+Data encryption at rest and in transit
+Audit logging for all sensitive operations
+Secure file upload and storage
+Payment data compliance (PCI DSS considerations)
+This comprehensive breakdown covers all the functionality visible in the frontend application and provides the necessary backend architecture to support a full-featured tea trading platform.
+
