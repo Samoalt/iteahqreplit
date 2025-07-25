@@ -1,3 +1,4 @@
+
 import { db } from "../db";
 import { documents } from "@shared/schema";
 import { eq } from "drizzle-orm";
@@ -76,7 +77,6 @@ export class FileStorageService {
     }
   }
 
-
   async deleteFile(documentId: string) {
     console.log('File deletion temporarily disabled');
     return true;
@@ -140,5 +140,6 @@ export class FileStorageService {
   }
 }
 
-export const fileStorageService = new FileStorageService();
-export default fileStorageService;
+// Export both named and default exports
+export const fileStorage = new FileStorageService();
+export default fileStorage;

@@ -2,11 +2,13 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { storage } from "./storage";
-import { insertBidSchema, insertInstantCashAdvanceSchema, insertFxLockSchema, insertInsurancePolicySchema } from "@shared/schema";
+import { insertBidSchema, insertInstantCashAdvanceSchema, insertFxLockSchema, insertInsurancePolicySchema, paymentInflows } from "@shared/schema";
 import { workflowEngine } from "./services/workflowEngine";
 import { paymentMatcher } from "./services/paymentMatching";
 import { notificationService } from "./services/notificationService";
 import { fileStorage } from "./services/fileStorage";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);

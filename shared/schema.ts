@@ -1,3 +1,4 @@
+
 import { pgTable, text, serial, integer, timestamp, json, boolean, decimal } from "drizzle-orm/pg-core";
 
 // Users table
@@ -158,18 +159,36 @@ export const documents = pgTable("documents", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-// Export all tables for easy access
-export {
-  users,
-  entities, 
-  paymentInflows,
-  bids,
-  auditLogs,
-  notifications,
-  emailQueue,
-  smsQueue,
-  workflowDefinitions,
-  workflowInstances,
-  approvalWorkflows,
-  documents
-};
+// Schemas for validation
+import { z } from "zod";
+
+export const insertBidSchema = z.object({
+  bidId: z.string(),
+  buyerId: z.number().optional(),
+  amount: z.string(),
+  status: z.string().default("pending"),
+});
+
+export const insertInstantCashAdvanceSchema = z.object({
+  producerId: z.number(),
+  lotId: z.string().optional(),
+  advanceAmount: z.string(),
+  aprRate: z.string(),
+  status: z.string(),
+});
+
+export const insertFxLockSchema = z.object({
+  userId: z.number(),
+  amountUSD: z.string(),
+  lockedRate: z.string(),
+  status: z.string(),
+});
+
+export const insertInsurancePolicySchema = z.object({
+  userId: z.number(),
+  policyNumber: z.string(),
+  type: z.string(),
+  coverageAmount: z.string(),
+  premiumAmount: z.string(),
+  status: z.string(),
+});
