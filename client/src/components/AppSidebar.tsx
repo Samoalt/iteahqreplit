@@ -158,8 +158,8 @@ export function AppSidebar() {
                                 asChild
                                 className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                                   location.pathname === subItem.url 
-                                    ? "bg-gradient-to-r from-elastic-navy-600 via-elastic-teal-500 to-elastic-green-500 text-white shadow-lg" 
-                                    : "text-slate-600 hover:bg-slate-50 hover:text-elastic-teal-700"
+                                    ? "bg-gradient-to-r from-blue-600 via-teal-500 to-green-500 text-white shadow-lg" 
+                                    : "text-slate-600 hover:bg-slate-50 hover:text-teal-700"
                                 }`}
                               >
                                 <Link to={subItem.url} className="flex items-center space-x-3 w-full">
@@ -177,8 +177,8 @@ export function AppSidebar() {
                       asChild
                       className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl font-medium transition-all duration-200 ${
                         location.pathname === item.url 
-                          ? "bg-gradient-to-r from-elastic-navy-600 via-elastic-teal-500 to-elastic-green-500 text-white shadow-lg" 
-                          : "text-slate-700 hover:bg-slate-50 hover:text-elastic-teal-700"
+                          ? "bg-gradient-to-r from-blue-600 via-teal-500 to-green-500 text-white shadow-lg" 
+                          : "text-slate-700 hover:bg-slate-50 hover:text-teal-700"
                       }`}
                     >
                       <Link to={item.url} className="flex items-center space-x-3 w-full">
