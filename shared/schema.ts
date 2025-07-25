@@ -1,4 +1,3 @@
-
 import { pgTable, text, serial, integer, timestamp, json, boolean, decimal } from "drizzle-orm/pg-core";
 
 // Users table
@@ -158,3 +157,19 @@ export const documents = pgTable("documents", {
   generatedBy: integer("generated_by").references(() => entities.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// Export all tables for easy access
+export {
+  users,
+  entities, 
+  paymentInflows,
+  bids,
+  auditLogs,
+  notifications,
+  emailQueue,
+  smsQueue,
+  workflowDefinitions,
+  workflowInstances,
+  approvalWorkflows,
+  documents
+};

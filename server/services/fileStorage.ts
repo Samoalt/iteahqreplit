@@ -141,3 +141,4 @@ export class FileStorageService {
 }
 
 export const fileStorageService = new FileStorageService();
+export default fileStorageService;
