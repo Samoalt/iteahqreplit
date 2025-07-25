@@ -69,6 +69,136 @@ export default function Login() {
     }
   };
 
+  // Demo login function for quick testing
+  const quickLogin = async (email: string, password: string) => {
+    setValue("email", email);
+    setValue("password", password);
+    await onSubmit({ email, password });
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center space-x-3 mb-4">
+            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+              <Leaf className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">iTea Flow</h1>
+              <p className="text-xs text-slate-600">powered by Elastic OS</p>
+            </div>
+          </div>
+          <h2 className="text-xl font-semibold text-slate-800">
+            Sign in to your account
+          </h2>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Login</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    className="pl-10"
+                    {...register("email")}
+                  />
+                </div>
+                {errors.email && (
+                  <p className="text-sm text-red-600">{errors.email.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    className="pl-10 pr-10"
+                    {...register("password")}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-slate-400" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-slate-400" />
+                    )}
+                  </Button>
+                </div>
+                {errors.password && (
+                  <p className="text-sm text-red-600">{errors.password.message}</p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="text-sm">
+                  <Link href="/register">
+                    <span className="text-blue-600 hover:underline cursor-pointer">
+                      Create an account
+                    </span>
+                  </Link>
+                </div>
+                <div className="text-sm">
+                  <Link href="/forgot-password">
+                    <span className="text-blue-600 hover:underline cursor-pointer">
+                      Forgot password?
+                    </span>
+                  </Link>
+                </div>
+              </div>
+
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Signing in..." : "Sign in"}
+              </Button>
+            </form>
+
+            {/* Demo accounts for testing */}
+            <div className="mt-6 pt-4 border-t">
+              <p className="text-sm text-slate-600 mb-3">Demo accounts:</p>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => quickLogin("producer@iteaflow.com", "demo123")}
+                  disabled={isLoading}
+                >
+                  Producer
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => quickLogin("buyer@iteaflow.com", "demo123")}
+                  disabled={isLoading}
+                >
+                  Buyer
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
   const demoAccounts = [
     { email: "producer@iteaflow.com", password: "demo123", role: "Producer", name: "Michael Wambugu" },
     { email: "buyer@iteaflow.com", password: "demo123", role: "Buyer", name: "Sarah Chen" },

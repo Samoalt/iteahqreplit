@@ -81,4 +81,36 @@ const Layout: React.FC = () => {
   );
 };
 
-export default Layout;
+import { ReactNode } from "react";
+import { SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
+import { TopBar } from "@/components/layout/TopBar";
+import { NotificationCenter } from "@/components/NotificationCenter";
+import { PlatformTour } from "@/components/tour/PlatformTour";
+import { useAuth } from "@/hooks/useAuth";
+
+interface LayoutProps {
+  children: ReactNode;
+}
+
+export default function Layout({ children }: LayoutProps) {
+  const { user } = useAuth();
+
+  if (!user) {
+    return <>{children}</>;
+  }
+
+  return (
+    <div className="flex h-screen w-full bg-gray-50">
+      <AppSidebar />
+      <SidebarInset className="flex-1 flex flex-col">
+        <TopBar />
+        <main className="flex-1 overflow-auto p-6">
+          {children}
+        </main>
+      </SidebarInset>
+      <NotificationCenter />
+      <PlatformTour />
+    </div>
+  );
+}
