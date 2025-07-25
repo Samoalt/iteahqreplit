@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -30,7 +29,7 @@ const Layout: React.FC = () => {
         <main className="flex-1 flex flex-col">
           <div className="p-2 border-b border-gray-200 bg-white flex items-center justify-between">
             <SidebarTrigger className="hover:bg-gray-100 p-2 rounded-lg transition-colors" />
-            
+
             {/* Top Header with Elastic Logo and Profile */}
             <div className="flex items-center space-x-4">
               <img 
@@ -38,7 +37,7 @@ const Layout: React.FC = () => {
                 alt="Elastic" 
                 className="h-8 w-auto"
               />
-              
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
@@ -81,36 +80,4 @@ const Layout: React.FC = () => {
   );
 };
 
-import { ReactNode } from "react";
-import { SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
-import { TopBar } from "@/components/layout/TopBar";
-import { NotificationCenter } from "@/components/NotificationCenter";
-import { PlatformTour } from "@/components/tour/PlatformTour";
-import { useAuth } from "@/hooks/useAuth";
-
-interface LayoutProps {
-  children: ReactNode;
-}
-
-export default function Layout({ children }: LayoutProps) {
-  const { user } = useAuth();
-
-  if (!user) {
-    return <>{children}</>;
-  }
-
-  return (
-    <div className="flex h-screen w-full bg-gray-50">
-      <AppSidebar />
-      <SidebarInset className="flex-1 flex flex-col">
-        <TopBar />
-        <main className="flex-1 overflow-auto p-6">
-          {children}
-        </main>
-      </SidebarInset>
-      <NotificationCenter />
-      <PlatformTour />
-    </div>
-  );
-}
+export default Layout;
